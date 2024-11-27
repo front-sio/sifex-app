@@ -1,0 +1,203 @@
+{% extends 'system/app/index.html' %}
+{% block page %}Invoice Detail{% endblock page %}
+{% block title %}Invoice Detail{% endblock %}
+{% load static %}{% load bulma_tags %}
+{% block content %}
+<br>
+<section class="">
+    <div class="container">
+        <div class="card white-ter">
+            <div class="hero-body card-body">
+                <div class="columns is-centered">
+                    <div class="column is-half">
+                        <h1 class="title">Invoice Detail  No: #{{ invoice.id }} for {{ invoice.customer }}</h1>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 col-lg-4 col-sm-4">
+                        <label for="id_customer_phone">Customer Phone</label>
+                        <input class="form-control" type="text" readonly value="{{ invoice.customer_email }}" id="id_customer_phone">
+                    </div>
+
+                    <div class="col-md-4 col-lg-4 col-sm-4">
+                        <label for="id_billing_address">Billing Address</label>
+                        <input class="form-control" type="text" readonly value="{{ invoice.billing_address }}" id="id_billing_address">
+                    </div>
+
+                    <div class="col-md-4 col-lg-4 col-sm-4">
+                        <label for="id_billing_address">Customer Phone</label>
+                        <input class="form-control" type="text" readonly value="{{ invoice.customer_phone }}" id="id_customer_phone">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 col-lg-3 col-sm-3">
+                        <label for="id_date">Date</label>
+                        <input class="form-control input" type="text" readonly value="{{ invoice.date }}" id="">
+                    </div>
+                    <div class="col-md-3 col-lg-3 col-sm-3">
+                        <label for="id_due_date">Due Date</label>
+                        <input class="form-control input" type="text" readonly value="{{ invoice.due_date }}" id="">
+                    </div>
+
+                    <div class="col-md-3 col-lg-3 col-sm-3">
+                        <label for="id_due_date">Invoice Status</label>
+                        <input class="form-control input" type="text" readonly value="{{ invoice.get_status }}" id="id_status">
+                    </div>
+
+                    <div class="col-md-3 col-lg-3 col-sm-3">
+                        <label for="id_due_date">Payment Method</label>
+                        <input class="form-control input" type="text" readonly value="{{ invoice.invoice_detail }}" id="id_detail">
+                    </div>
+                </div>
+                
+                <h2 class="subtitle">Other Details</h2>
+                <div class="table-responsive">
+                    <table class="table is-fullwidth is-bordered is-hoverable is-striped datanew">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Description</th>
+                                <th>Origin</th>
+                                <th>QTY</th>
+                                <th>Weight</th>
+                                <th>Rate</th>
+                                <th>Amount (TZS)</th>
+                                <th>Amount (USD)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in line_items %}
+                            <tr>
+                                <td>{{ item.service }}</td>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.customer.origin }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.chargable_weight }}</td>
+                                <td>{{ item.rate }}</td>
+                                <td>{{ item.amount_tz }}</td>
+                                <td>{{ item.amount_usd }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row is-centered">
+                    <div class="col-md-6 col-lg-6 is-half">
+                        <h3 class="title is-4">Total Amount (USD): <span>{{ invoice.total_amount_usd }}</span></h3>
+                    </div>
+
+                    <div class="col-md-6 col-lg-6 is-half">
+                        <h3 class="title is-4">Total Amount (TZS): <span>{{ invoice.total_amount_tzs }}</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<div class="card has-background">
+    <header class="card-header">
+        <div class="row">
+            <div class="col-md-6 col-lg-6">
+                <p class="card-header-title">
+                    Change Order Status
+                </p>
+            </div>
+            <div class="col-md-6 col-lg-6">
+                <a href="{% url 'invoice_pdf' invoice.id %}" class="btn btn-secondary download-btn" download><i class="fa fa-download"></i> Download</a>
+            </div>
+        </div>
+    </header>
+    {% if invoice.get_status == 'unpaid' %}
+    <div class="card-body">
+        <form action="{% url 'invoice-list' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" value="{{ invoice.id }}" name="invoice_id"/>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group is-rounded">
+                        <label for="invoice_status">Invoice detail</label>
+                        <select class="form-control" name="status">
+                            <option value="paid">Paid</option>
+                            <option value="credited">Credited</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group is-rounded">
+                        <label for="invoice_detail">Invoice detail</label>
+                        <select class="form-control" name="invoice_detail">
+                            <option value="cash">Cash</option>
+                            <option value="bank">Bank</option>
+                            <option value="mobile">Mobile</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        
+        
+        <br>
+
+        <div class="container">
+            <div class="row bt-20">
+                <input class="button btn btn-secondary is-info is-rounded submit-btn" type="submit" value="Mark Payment" name="mybtn">
+            </div>
+        </div>
+
+    </form>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block script %}
+<!-- Include Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Include Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#id_date", {
+            dateFormat: "Y-m-d",
+        });
+        flatpickr("#id_due_date", {
+            dateFormat: "Y-m-d",
+        });
+
+        document.querySelectorAll('.download-btn').forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm';
+                spinner.role = 'status';
+                spinner.ariaHidden = 'true';
+                this.appendChild(spinner);
+                this.classList.add('disabled');
+
+                // Stop the loader after the download starts
+                setTimeout(() => {
+                    spinner.remove();
+                    this.classList.remove('disabled');
+                }, 2000); // Adjust the delay as necessary
+            });
+        });
+
+        document.querySelectorAll('.submit-btn').forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm';
+                spinner.role = 'status';
+                spinner.ariaHidden = 'true';
+                this.value = 'Loading...';
+                this.appendChild(spinner);
+                this.classList.add('disabled');
+            });
+        });
+    });
+</script>
+{% endblock %}

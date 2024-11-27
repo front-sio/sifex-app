@@ -1,0 +1,79 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}Invoice History{% endblock %}
+
+{% block page %}Invoice History{% endblock page %}
+{% block slogan %}History of Invoice Edits and Deletions{% endblock slogan %}
+
+{% block content %}
+<h2>Invoice History</h2>
+
+<!-- Search field -->
+<div class="field">
+    <p class="control has-icons-left">
+        <input class="input" type="text" id="searchInput" placeholder="Search for anything...">
+        <span class="icon is-small is-left">
+            <i class="fas fa-search"></i>
+        </span>
+    </p>
+</div>
+
+<table id="invoiceHistoryTable" class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+    <thead>
+        <tr>
+            <th>Invoice ID</th>
+            <th>AWB</th>
+            <th>Customer</th>
+            <th>PCS</th>
+            <th>Weight (Kg)</th>
+            <th>Origin</th>
+            <th>Amount</th>
+            <th>Action</th>
+            <th>Performed By</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for history in invoice_histories %}
+        <tr>
+            <td>{{ history.invoice_id }}</td>
+            <td>{{ history.awb }}</td>
+            <td>{{ history.customer }}</td>
+            <td>{{ history.pcs }}</td>
+            <td>{{ history.weight_kg }}</td>
+            <td>{{ history.origin }}</td>
+            <td>{{ history.total_amount_tzs }}</td>
+            <td>{{ history.action|capfirst }}</td>
+            <td>{{ history.performed_by.username }}</td>
+            <td>{{ history.performed_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('keyup', function () {
+            const filter = searchInput.value.toLowerCase();
+            const table = document.getElementById('invoiceHistoryTable');
+            const rows = table.getElementsByTagName('tr');
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j]) {
+                        if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                rows[i].style.display = match ? '' : 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

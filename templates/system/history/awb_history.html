@@ -1,0 +1,165 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+
+{% block title %}AWB History{% endblock %}
+{% block page %}Track AWB History{% endblock %}
+
+{% block content %}
+<h2>Track AWB History</h2>
+
+<!-- AWB Input Field and Search Button -->
+<div class="mb-4 d-flex" style="max-width: 400px;">
+    <input type="text" id="awbInput" class="form-control" placeholder="Enter AWB Number">
+    <button class="btn btn-primary ml-2" onclick="searchAWB()">Search</button>
+</div>
+
+{% if master_awb %}
+    <h3>AWB Details for {{ master_awb.awb }}</h3>
+    <p><strong>Sender:</strong> {{ master_awb.sender_name }}<br>
+    <strong>Receiver:</strong> {{ master_awb.receiver_name }}</p>
+
+    <h4>History:</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Changes</th>
+                <th>Remark</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in history %}
+            <tr>
+                <td>{{ record.changed_at }}</td>
+                <td>{{ record.changed_by.username }}</td>
+                <td>{{ record.change_summary|truncatewords:5 }}</td>
+                <td>{{ record.remark|default:"No remark" }}</td>
+                <td>
+                    <button class="btn btn-info btn-sm view-changes-btn" data-history-id="{{ record.id }}">View Details</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No history available for this AWB.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<!-- Custom Modal for Viewing Change Details -->
+<div id="customModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="custom-modal-close">&times;</span>
+        <h2>Change Details</h2>
+        <p><strong>Date:</strong> <span id="modal-changed-at"></span></p>
+        <p><strong>User:</strong> <span id="modal-changed-by"></span></p>
+        <p><strong>Summary:</strong></p>
+        <pre id="modal-change-summary"></pre>
+        <p><strong>Remark:</strong></p>
+        <pre id="modal-remark"></pre>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block style %}
+<style>
+    /* Custom Modal Styles */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .custom-modal-content {
+        background-color: #fff;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .custom-modal-close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .custom-modal-close:hover,
+    .custom-modal-close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+    function searchAWB() {
+        const awb = document.getElementById('awbInput').value;
+        if (awb) {
+            window.location.href = `{% url 'awb_history' %}?awb=` + awb;
+        } else {
+            alert('Please enter an AWB number');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewChangeButtons = document.querySelectorAll('.view-changes-btn');
+        const modal = document.getElementById('customModal');
+        const closeModalButton = document.querySelector('.custom-modal-close');
+
+        viewChangeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const historyId = this.getAttribute('data-history-id');
+
+                // Fetch the history details using AJAX
+                fetch(`{% url 'awb_history' %}?history_id=${historyId}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modal-changed-at').textContent = data.changed_at;
+                    document.getElementById('modal-changed-by').textContent = data.changed_by;
+                    document.getElementById('modal-change-summary').textContent = data.change_summary;
+                    document.getElementById('modal-remark').textContent = data.remark;
+
+                    // Show the modal
+                    modal.style.display = 'flex';
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close the modal if the user clicks anywhere outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

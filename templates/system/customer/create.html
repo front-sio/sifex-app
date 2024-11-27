@@ -1,0 +1,72 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% block title %}create new customer{% endblock %}
+
+{% block page %}create new customer{% endblock page %}
+{% block slogan %}add an customer{% endblock slogan %}    
+ 
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+<div class="card">
+<div class="card-body">
+    {% include 'system/partials/_messages.html' %}
+    <form action="{% url 'add-customer' %}" method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-3 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" value="">
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" name="phone" value="" class="form-control">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-3 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="address" value="">
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" name="city" value="" class="form-control">
+                </div>
+            </div>
+            <div class="col-lg-3 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Country</label>
+                    <input type="text" name="country" value="" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 col-sm-12">
+                <button type="submit" class="btn btn-submit me-2">Submit</button>
+                <button type="reset" class="btn btn-cancel">Clear</button>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock content %}

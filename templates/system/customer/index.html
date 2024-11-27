@@ -1,0 +1,152 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Customers list{% endblock %}
+
+{% block page %}Customers list{% endblock page %}
+{% block slogan %}list of Customers{% endblock slogan %} 
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+
+    </div>
+    <div class="page-btn">
+        <a href="{% url 'add-customer' %}" class="btn btn-added"><img src="{% static 'system/assets/img/icons/plus.svg' %}" alt="img" class="me-1">new customer</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+    <div class="table-top">
+    <div class="search-set">
+    <div class="search-path">
+  
+    </div>
+    <div class="search-input">
+    <a class="btn btn-searchset"><img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img"></a>
+    </div>
+        {% include 'system/partials/_messages.html' %}
+    </div>
+    <div class="wordset">'
+    <ul>
+    <li>
+    <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{% static 'system/assets/img/icons/pdf.svg' %}" alt="img"></a>
+    </li>
+    <li>
+    <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{% static 'system/assets/img/icons/excel.svg' %}" alt="img"></a>
+    </li>
+    <li>
+    <a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img"></a>
+    </li>
+    </ul>
+    </div>
+    </div>
+    
+    <div class="card mb-0" id="filter_inputs">
+    <div class="card-body pb-0">
+    <div class="row">
+        <div class="col-md-12 col-lg-12 col-sm-12 d-flex justify-content-between">
+            <div class="form-group">
+                <select name="status" id="id_status" class="form-control">
+                    <option value="delivered" class="form-control">delivered</option>
+                </select>
+                
+            </div>
+            <div class="form-group">
+                <input type="date" id="id_date" name="date" placeholder="Date" class="form-control">
+            </div>
+            <div class="form-group">
+                <input type="time" name="time" id="id_time" placeholder="Time" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <input name="note" id="id_note" class="form-control" placeholder="Note">
+            </div>
+            <div class="form-group">
+                <select name="terminal" id="id_terminal" class="form-control">
+                    <option value="CAN - Guanzhou">CAN - Guanzhou</option>
+                    <option value="HKG - HongKong">HKG - HongKong</option>
+                    <option value="DAR - Dar es salaam">DAR - Dar es salaam</option>
+                    <option value="DXB - Dubai">DXB - Dubai</option>
+                    <option value="NBO - Nairobi">NBO - Nairobi</option>
+                    <option value="SHJ - Sharjah">SHJ - Sharjah</option>
+                    <option value="JNB - Johanesburg">JNB - Johanesburg</option>
+                    <option value="MCT - Muscat">MCT - Muscat</option>
+                    <option value="BOM - Mumbai">BOM - Mumbai</option>
+                    <option value="ADD - Addis Ababa">ADD - Addis Ababa</option>
+                </select>
+                
+            </div>
+            <div class="update-btn ml-3">
+                <button type="submit" id="delivered_btn" class="btn btn-danger add_loaded_status" >save</button>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table  datanew">
+        <thead>
+        <tr>
+        <th>
+        <label class="checkboxs">
+        <input type="checkbox" id="select-all">
+        <span class="checkmarks"></span>
+        </label>
+        </th>
+        <th>First Name</th>
+        <th>Phone</th>
+        <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for customer in customers %}
+        <tr>
+        <td>
+        <label class="checkboxs">
+        <input type="checkbox" name="awb_id[]" value="{{pc.id}}" id="checkbox" class="loaded_status">
+        <span class="checkmarks"></span>
+        </label>
+        </td>
+        <td class="productimgname">
+            <a href="">{{customer.name}}</a>
+        </td>
+        <td>{{customer.phone}}</td>
+        <td>
+        <a class="me-3" href="">
+        <img src="{% static 'inventory_ui/img/icons/eye.svg' %}" alt="img">
+        </a>
+        {% if request.user.office %}
+        <a class="me-3" href="">
+        <img src="{% static 'inventory_ui/img/icons/edit.svg' %}" alt="img">
+        </a>
+        {% endif %}
+        <a class="confirm-text" href="">
+        <img src="{% static 'inventory_ui/img/icons/delete.svg' %}" alt="img">
+        </a>
+        </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

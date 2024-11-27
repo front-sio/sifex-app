@@ -1,0 +1,57 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Search Location Item{% endblock %}
+
+{% block page %}Search Location Item{% endblock page %}
+{% block slogan %}Search Location Item{% endblock slogan %}
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            {% include 'system/partials/_messages.html' %}
+        </div>
+
+        <form action="{% url 'location_search_process' %}" method="get">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <input required type="text" name="query" id="" class="form-control" placeholder="Enter AWB ID">
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">Search</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners or any other initialization code here
+    });
+</script>
+{% endblock %}

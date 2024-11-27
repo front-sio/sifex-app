@@ -1,0 +1,96 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Search Location Item{% endblock %}
+
+{% block page %}Search Location Item{% endblock page %}
+{% block slogan %}Search Location Item{% endblock slogan %}
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            {% include 'system/partials/_messages.html' %}
+        </div>
+
+        {% if master_awb %}
+            <h4>AWB: {{ master_awb.awb }}</h4>
+        {% endif %}
+
+        {% if locations %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>AWB</th>
+                        <th>Rack</th>
+                        <th>Bay</th>
+                        <th>Pcs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for location in locations %}
+                        <tr>
+                            <td>{{ location.awb.awb }}</td>
+                            <td>{{ location.rack }}</td>
+                            <td>{{ location.bay }}</td>
+                            <td>{{ location.pcs }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <form action="{% url 'save_location_info' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="awb_id" value="{{ master_awb.id }}">
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <label for="rack">Rack</label>
+                        <input required type="text" name="rack" id="" class="form-control" placeholder="Enter Rack">
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <label for="bay">Bay</label>
+                        <input required type="text" name="bay" id="" class="form-control" placeholder="Enter Bay">
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <label for="pcs">Pcs</label>
+                        <input required type="text" name="pcs" id="" class="form-control" placeholder="Enter Pcs">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 col-12">
+                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners or any other initialization code here
+    });
+</script>
+{% endblock %}

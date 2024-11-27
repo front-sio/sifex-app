@@ -1,0 +1,109 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Select awb to Generate an invoice{% endblock %}
+
+{% block page %}Generate an invoice{% endblock page %}
+{% block slogan %}Select awb to Generate an invoice{% endblock slogan %}
+
+{% block style %}
+<style>
+    .hide-accept-form {
+        display: none;
+    }
+    .hide-response-form {
+        display: none;
+    }
+    .hide-add-form {
+        display: none;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            <div class="search-set">
+                <div class="search-path">
+                    <!-- Optional search path -->
+                </div>
+                <div class="search-input">
+                    <a class="btn btn-searchset"><img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img"></a>
+                </div>
+            </div>
+            <div class="wordset">
+                <ul>
+                    <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{% static 'system/assets/img/icons/pdf.svg' %}" alt="img"></a></li>
+                    <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{% static 'system/assets/img/icons/excel.svg' %}" alt="img"></a></li>
+                    <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img"></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mb-0" id="filter_inputs">
+            <div class="card-body pb-0">
+                <!-- Optional filter inputs -->
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table datanew">
+                <thead>
+                    <tr>
+                        <th>
+                            <label class="checkboxs">
+                                <input type="checkbox" id="select-all">
+                                <span class="checkmarks"></span>
+                            </label>
+                        </th>
+                        <th>Customer</th>
+                        <th>Product/Service</th>
+                        <th>Exchange Rate</th>
+                        <th>QTY</th>
+                        <th>Weight</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pc in pcs %}
+                    <tr>
+                        <td>
+                            <label class="checkboxs">
+                                <input type="checkbox" name="awb_id[]" value="{{pc.id}}" id="checkbox" class="loaded_status">
+                                <span class="checkmarks"></span>
+                            </label>
+                        </td>
+                        <td><a href="">{{pc.receiver_name}}</a></td>
+                        <td><a href="">{{pc.awb}}</a></td>
+                        <td>{{exchange_rate.exchange_rate}}</td>
+                        <td>{{pc.awb_pcs}}</td>
+                        <td>{{pc.awb_kg}}</td>
+                        <td>
+                            <a class="btn btn-success generate-btn" href="{% url 'invoice-create' pc.id %}" style="color: #fff;">
+                                Generate invoice
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.generate-btn').forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const spinner = this.querySelector('.spinner-border');
+                spinner.classList.remove('d-none');
+                this.classList.add('disabled');
+                window.location.href = this.href;
+            });
+        });
+    });
+</script>
+{% endblock %}

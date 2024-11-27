@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+<meta name="description" content="air shipping company">
+<meta name="keywords" content="from china, kutoka china, dubai, safirisha mzigo, safirisha mizigo kutoka china na dubai, safirisha mizigo kutoka china, safirisha mizigo kutoka dubai, ship from china, ship from dubai,  to zanzibar, to tanzania, to dar es salaam">
+<meta name="author" content="Dreamguys - Bootstrap Admin Template">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}{% endblock %} | sifex</title>
+
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'system/assets/img/sifex/favicon.png' %}">
+
+<link rel="stylesheet" href="{% static 'system/assets/css/bootstrap.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'system/assets/css/animate.css' %}">
+
+<!-- home style for preloader -->
+<link rel="stylesheet" href="{% static 'home/assets/css/style.css' %}">
+
+<link rel="stylesheet" href="{% static 'system/assets/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'system/assets/plugins/select2/css/select2.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'system/assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'system/assets/plugins/fontawesome/css/all.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'system/assets/css/style.css' %}">
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<link href="{% static 'invoice/css/bulma-calendar.min.css' %}" rel="stylesheet">
+<script src="{% static 'invoice/js/bulma-calendar.min.js' %}"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+{% block style %}{% endblock %}
+<style>
+    .preloader {
+            transition: opacity 0.5s ease;
+        }
+
+        .preloader.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+</style>
+<script>
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var preloader = document.getElementById('preloader-active');
+        preloader.classList.add('hide');
+
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('.header-bottom');
+            if (window.scrollY > 0) {
+                header.classList.add('header-sticky');
+            } else {
+                header.classList.remove('header-sticky');
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    });
+</script>
+</head>
+<body>
+<!-- <div id="global-loader">
+<div class="whirly-loader"></div>
+</div> -->
+
+<!-- Preloader Start -->
+<div id="preloader-active">
+    <div class="preloader d-flex align-items-center justify-content-center">
+        <div class="preloader-inner position-relative">
+            <div class="preloader-circle"></div>
+            <div class="preloader-img pere-text">
+                <img src="{% static 'home/assets/img/logo/loder.jpg' %}" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Preloader End -->
+
+<div class="main-wrapper">
+    {% include 'system/partials/navbar.html' %}
+    {% include 'system/partials/sidebar.html' %}
+    <div class="page-wrapper">
+        <div class="content">
+            <div class="page-header">
+                <div class="page-title">
+                    <h4>{% block page %}{% endblock page %}</h4>
+                    <h6>{% block slogan %}{% endblock slogan %}</h6>
+                </div>
+            </div>
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div id="awbModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>AWB Details</h2>
+        <table id="modalTable" class="table">
+            <thead>
+                <tr>
+                    <th>Rack</th>
+                    <th>Bay</th>
+                    <th>PCS</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be injected here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script src="{% static 'system/assets/js/jquery-3.6.0.min.js' %}"></script>
+
+<script src="{% static 'system/assets/js/feather.min.js' %}"></script>
+
+<script src="{% static 'system/assets/js/jquery.slimscroll.min.js' %}"></script>
+
+<script src="{% static 'system/assets/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'system/assets/js/dataTables.bootstrap4.min.js' %}"></script>
+
+<script src="{% static 'system/assets/js/bootstrap.bundle.min.js' %}"></script>
+
+<script src="{% static 'system/assets/plugins/apexchart/apexcharts.min.js' %}"></script>
+<script src="{% static 'system/assets/plugins/apexchart/chart-data.js' %}"></script>
+<script src="{% static 'system/assets/plugins/select2/js/select2.min.js' %}"></script>
+
+<script src="{% static 'system/assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+<script src="{% static 'system/assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+<script src="{% static 'system/assets/plugins/chartjs/chart.min.js' %}"></script>
+<script src="{% static 'system/assets/plugins/chartjs/chart-data.js' %}"></script>
+
+<script src="{% static 'system/assets/js/script.js' %}"></script>
+<!-- <script src="{% static 'system/assets/js/system_js/acceptance.js' %}"></script> -->
+<script src="{% static 'system/assets/js/system_js/main.js' %}"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="{% static 'home/assets/js/main.js' %}"></script>
+{% block script %}
+<script>
+    $('#toast').delay(2000).fadeOut('slow')
+</script>
+{% endblock %}
+</body>
+</html>

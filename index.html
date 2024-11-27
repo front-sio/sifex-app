@@ -1,0 +1,147 @@
+{% extends 'system/app/index.html' %}
+{% block page %}User list{% endblock page %}
+{% block title %}User list{% endblock %}
+{% load static %}
+{% block style %} 
+  <style>
+    .myModalAlert{
+      position: absolute;
+      z-index: 100;
+      top: 50vh;
+      left: 35vw;
+    }
+
+    .myModal{
+      position: absolute;
+      z-index: 100;
+      top: 50vh;
+      left: 15vw;
+      width: 80vw;
+    }
+
+    .alert h3 {
+      color: #fff;
+    }
+  </style>
+{% endblock style %}
+{% block content %}
+
+ <div class="page-header">
+    <div class="page-title">
+        <!-- Page title content -->
+    </div>
+    <div class="page-btn">
+        {% if request.user %}
+        <a href="{% url 'new_staff' %}" class="btn btn-added">
+            <img src="{% static 'system/assets/img/icons/plus.svg' %}" alt="img" class="me-1">new staff
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+    <div class="table-top">
+    <div class="search-set">
+    <div class="search-input">
+    <a class="btn btn-searchset">
+        <img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img">
+    </a>
+    </div>
+    {% include 'system/partials/_messages.html' %}
+    </div>
+    <div class="wordset">
+    <ul>
+    <li>
+    <a href="" data-bs-toggle="tooltip" data-bs-placement="top" title="pdf">
+        <img src="{% static 'system/assets/img/icons/pdf.svg' %}" alt="img">
+    </a>
+    </li>
+    <li>
+    <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel">
+        <img src="{% static 'system/assets/img/icons/excel.svg' %}" alt="img">
+    </a>
+    </li>
+    <li>
+    <a data-bs-toggle="tooltip" data-bs-placement="top" title="print">
+        <img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img">
+    </a>
+    </li>
+    </ul>
+    </div>
+    </div>
+    
+    <div class="card mb-0" id="filter_inputs">
+    <div class="card-body pb-0">
+        <!-- Filter inputs content -->
+    </div>
+    </div>
+    
+    <div class="table-responsive">
+    <table class="table  datanew">
+    <thead>
+    <tr>
+    <th>
+    <label class="checkboxs">
+    <input type="checkbox" id="select-all">
+    <span class="checkmarks"></span>
+    </label>
+    </th>
+    <th>Username</th>
+    <th>Email </th>
+    <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+    <tr>
+    <td>
+    <label class="checkboxs">
+    <input type="checkbox" name="awb_id[]" value="{{ user.id }}" id="checkbox" class="loaded_status">
+    <span class="checkmarks"></span>
+    </label>
+    </td>
+    <td class="productimgname">
+        <a href="">{{ user.username }}</a>
+    </td>
+    <td>{{ user.email }}</td>
+    <td>
+    <a class="me-3" href="{% url 'view_user' user.id %}">
+        <img src="{% static 'system/assets/img/icons/eye.svg' %}" alt="img">
+    </a>
+    
+    <a class="me-3" href="{% url 'edit_user' user.id %}">
+        <img src="{% static 'system/assets/img/icons/edit.svg' %}" alt="img">
+    </a>
+   
+    <a class="confirm-text" href="{% url 'delete_user' user.id %}">
+        <img src="{% static 'system/assets/img/icons/delete.svg' %}" alt="img">
+    </a>
+    
+    <a class="me-3" href="{% url 'reset_password' user.id %}">
+        reset password
+        <!-- <img src="{% static 'system/assets/img/icons/reset.svg' %}" alt="img"> -->
+    </a>
+    
+    {% if user.is_active %}
+    <a class="me-3" href="{% url 'deactivate_user' user.id %}">
+        deactivate
+        <!-- <img src="{% static 'system/assets/img/icons/deactivate.svg' %}" alt="img"> -->
+    </a>
+    {% else %}
+    <a class="me-3" href="{% url 'activate_user' user.id %}">
+        activate
+        <!-- <img src="{% static 'system/assets/img/icons/activate.svg' %}" alt="img"> -->
+    </a>
+    {% endif %}
+    </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

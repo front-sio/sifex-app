@@ -1,0 +1,125 @@
+{% extends 'system/app/index.html' %}
+{% load bulma_tags %}
+{% block content %}
+{% block title %}Invoices{% endblock %}
+{% include 'system/partials/_messages.html' %}
+<form action="{% url 'invoice-list' %}" method="post">{% csrf_token %}
+    <div class="card">
+        <header class="card-header">
+        </header>
+        <div class="card-content">
+            <div class="content table-responsive">
+                <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>
+                                <a href="?sort_by=id&order={% if sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+                                    INVOICE NO:
+                                    {% if sort_by == 'id' %}
+                                        {% if sort_order == 'asc' %}
+                                            <span>&#9650;</span> <!-- Upward arrow -->
+                                        {% else %}
+                                            <span>&#9660;</span> <!-- Downward arrow -->
+                                        {% endif %}
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th>TRACKING NUMBER</th>
+                            <th>ORIGIN</th>
+                            <th>CUSTOMER</th>
+                            <th>DATE</th>
+                            <th>STATUS</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td><input class="checkbox" type="checkbox" value="{{ invoice.id }}" name="invoice_id" size="1" /></td>
+                            <td width="1%">#{{ invoice.id }}</td>
+                            <td width="9%">{{ invoice.awb.awb }}</td>
+                            <td width="9%">{{ invoice.origin }}</td>
+                            <td width="9%">{{ invoice.customer }}</td>
+                            <td>{{ invoice.date }}</td>
+                            <td class="level-right">
+                                {% if invoice.status == 'paid' %}
+                                <a class="button is-small is-success" href="#">Paid</a>
+                                {% elif invoice.status == 'credited' %}
+                                <a class="button is-small is-primary" href="#">Credited</a>
+                                {% else %}
+                                <a class="button is-small is-warning" href="#">Not Paid</a>
+                                {% endif %}
+                            </td>
+                            
+                            <td width="1%">
+                                {% if request.user.management %}
+                                <a href="#" class="delete-btn button is-small is-info" data-url="{% url 'delete-invoice' id=invoice.id %}">
+                                    Delete
+                                </a>
+                                {% endif %}
+                                <a class="button is-small is-info" href="{% url 'invoice_detail' invoice.id %}">View Invoice</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Modal for confirming deletion -->
+<div class="modal" id="confirmModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Confirm Deletion</p>
+            <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+            <p>Are you sure you want to delete this invoice?</p>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button is-danger" id="confirmDelete">Delete</button>
+            <button class="button cancel-btn">Cancel</button>
+        </footer>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const modal = document.getElementById('confirmModal');
+    const closeButton = modal.querySelector('.delete');
+    const cancelButton = modal.querySelector('.cancel-btn');
+    const confirmButton = modal.querySelector('#confirmDelete');
+    let deleteUrl = '';
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            deleteUrl = this.getAttribute('data-url');
+            modal.classList.add('is-active');
+        });
+    });
+
+    closeButton.addEventListener('click', () => {
+        modal.classList.remove('is-active');
+    });
+
+    cancelButton.addEventListener('click', () => {
+        modal.classList.remove('is-active');
+    });
+
+    confirmButton.addEventListener('click', () => {
+        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+        confirmButton.classList.add('is-loading');
+        window.location.href = deleteUrl;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'system/app/index.html' %}
+{% block page %} Edit User {% endblock page %}
+{% block title %}Edit User{% endblock %}
+{% block style %}
+<style>
+    .flex-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+            </div>
+            <div class="form-group row">
+                <div class="col-md-2 flex-row">
+                    <label for="wharehouse">Wharehouse</label>
+                    <input type="checkbox" id="wharehouse" name="wharehouse" {% if user.wharehouse %}checked{% endif %}>
+                </div>
+                <div class="col-md-2 flex-row">
+                    <label for="acceptance">Acceptance</label>
+                    <input type="checkbox" id="acceptance" name="acceptance" {% if user.acceptance %}checked{% endif %}>
+                </div>
+                <div class="col-md-2 flex-row">
+                    <label for="importer">Importer</label>
+                    <input type="checkbox" id="importer" name="importer" {% if user.importer %}checked{% endif %}>
+                </div>
+                <div class="col-md-2 flex-row">
+                    <label for="accountance">Accountance</label>
+                    <input type="checkbox" id="accountance" name="accountance" {% if user.accountance %}checked{% endif %}>
+                </div>
+                <div class="col-md-2 flex-row">
+                    <label for="management">Management</label>
+                    <input type="checkbox" id="management" name="management" {% if user.management %}checked{% endif %}>
+                </div>
+                <div class="col-md-2 flex-row">
+                    <label for="report">report</label>
+                    <input type="checkbox" id="report" name="report" {% if user.report %}checked{% endif %}>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'users' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

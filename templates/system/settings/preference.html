@@ -1,0 +1,125 @@
+{% extends 'system/app/index.html' %}
+
+{% block style %}
+  <style>
+    .image-upload {
+            max-width: 400px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 30px;
+        }
+        .image-area {
+            position: relative;
+            width: 100%;
+            height: 240px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .image-area svg {
+            width: 100px;
+        }
+
+        .image-area img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            z-index: 100;
+        }
+
+        .image-area::before{
+            content: attr(data-img);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .5);
+            color: #fff;
+            font-weight: 500;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: all .3s ease-in-out;
+            z-index: 200;
+        }
+
+        .select-image {
+            cursor: pointer;
+        }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-sm-12 col-lg-8">
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-lg-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>{% block title %}Update user information{% endblock title %} </h4>
+                        </div>  
+                        <div class="card-body">
+                            <div class="visitor-list">
+                                <form action="{% url 'preference' preference.id %}" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        {{form.as_p}}
+                                    </div>
+                                    <div class="row">
+                                        <button type="submit" class="btn btn-primary">Update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                  
+            </div>
+        </div>
+        <div class="col-md-4">
+            {% include 'system/partials/_messages.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block script %}
+<script>
+    const selectImage = document.querySelector(".select-image");
+    const inputPhoto = document.querySelector("#id_company_logo");
+    const imageArea = document.querySelector(".image-area");
+
+
+    selectImage.addEventListener('click', ()=>{
+        inputPhoto.click()
+    });
+
+    inputPhoto.addEventListener('change', function(){
+        const images = this.files[0]
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            const imageUrl = reader.result;
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            imageArea.appendChild(img)
+        }
+        reader.readAsDataURL(images);
+    });
+ </script>
+{% endblock %}

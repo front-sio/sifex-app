@@ -1,0 +1,7 @@
+{% if messages %}
+<div class="messages mt-3">
+    {% for message in messages %}
+      <div id="toast" {% if message.tags %} class="toast-body text text-center text-light position-fixed bottom-0 end-0 p3 bg-{{message.tags}}" {% endif %} style="z-index: 100; border-radius: 6px;">{{message}}</div>
+    {% endfor %}
+</div>
+{% endif %}

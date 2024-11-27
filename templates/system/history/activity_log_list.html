@@ -1,0 +1,54 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}Activity Logs{% endblock %}
+
+{% block page %}Activity Logs{% endblock page %}
+
+{% block style %}
+    <style>
+        .table-container {
+            margin: 20px 0;
+        }
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .activity-table th, .activity-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .activity-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% include 'system/partials/_messages.html' %}
+
+<div class="table-container">
+    <h2>Activity Log</h2>
+    <table class="activity-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Activity Type</th>
+                <th>Description</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td>{{ log.id }}</td>
+                    <td>{{ log.user.username }}</td>
+                    <td>{{ log.activity_type }}</td>
+                    <td>{{ log.description }}</td>
+                    <td>{{ log.timestamp }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

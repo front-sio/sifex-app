@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sifex awb printing</title>
+    <link rel="stylesheet" href="{% static 'system/assets/css/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" href="{% static 'system/assets/css/animate.css' %}">
+
+    <link rel="stylesheet" href="{% static 'system/assets/css/dataTables.bootstrap4.min.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+
+@media print {
+    @page {
+        size: 101mm 152mm;
+        margin: 2.5cm 1.5cm 3.5cm 1.5cm;
+
+        }
+
+       
+        .barcode 
+        {
+            border: 1px solid #000;
+            bottom: 0%;
+        }
+        h4 
+        {
+          font-size: 12px;
+        }
+
+        .table {
+            border: 1px solid #000;
+        }
+
+    
+        .claer 
+        {
+            height: 1px;
+            background-color: #000;
+            width: 100%;
+        }
+
+
+        #logo {
+            width: 70px;
+            margin-bottom: 12px;
+        }
+
+        #logo img {
+            width: 100%;
+            height: 100%;
+        }
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #141313;
+    flex-direction: column;
+}
+
+#print-area {
+    border: 1px solid #000;
+}
+
+.label {
+    width: 101mm;
+    border-radius: 1px solid #000;
+    background: #fff;
+    margin: 2.5cm 1.5cm 3.5cm 1.5cm;
+    padding: 1.5cm 1.5cm 1.5cm 1.5cm;
+}
+
+.barcode {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#barcode {
+    width: 99mm;
+}
+           
+
+p  {
+    font-size: 9px;
+    font-weight: 800;
+    color: #000;
+}
+
+.barcode 
+{
+    border: 1px solid #000;
+    bottom: 0%;
+}
+
+.claer 
+{
+    height: 1px;
+    background-color: #000;
+    width: 100%;
+}
+
+
+#logo {
+    width: 70px;
+    margin-bottom: 12px;
+}
+
+#logo img {
+    width: 100%;
+    height: 100%;
+}
+
+.table {
+    border: 1px solid #000;
+}
+
+</style>
+</head>
+<body>
+    <input type="text" id="myBarcode" hidden value="{{awb.awb}}">
+    <button type="button" onclick="printDiv('print-area')" class="btn btn-primary text-center">Print</button>
+<div class="label" id="print-area">
+<div id="logo">
+    <img src="{% static 'system/assets/img/sifex/logo.png' %}" id="logo_image" alt="">
+</div>
+<!-- <br> -->
+<!-- <div class="claer"></div> -->
+<div class="barcode"><svg id="barcode"></svg></div>
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+           
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Sender:</th>
+            <td>{{awb.sender_name}}</td>
+        </tr>
+        <tr>
+            <th>Phone:</th>
+            <td>{{awb.sender_tel}}</td>
+        </tr>
+        <tr>
+            <th>Reciever:</th>
+            <td>{{awb.receiver_name}}</td>
+        </tr>
+        <tr>
+            <th>Receiver Phone:</th>
+            <td>{{awb.receiver_tel}}</td>
+        </tr>
+        <tr>
+            <th>Reciever Address:</th>
+            <td>{{awb.receiver_address}}</td>
+        </tr>
+
+
+        <tr>
+            <th>Payment type:</th>
+            <td>{{awb.payment_mode}}</td>
+        </tr>
+        <tr>
+            <th>Number of pieces:</th>
+            <td>{{awb.awb_pcs}}</td>
+        </tr>
+        <tr>
+            <th>Chargable weight:</th>
+            <td>{{awb.chargable_weight}} kg</td>
+        </tr>
+
+        <tr>
+            <th>desc:</th>
+            <td>{{awb.desc}}</td>
+        </tr>
+       
+    </tbody>
+</table>
+ 
+<!-- <div class="claer"></div> -->
+
+</div>  
+    <script>
+
+        const barcode = document.getElementById('myBarcode').value
+        
+        JsBarcode("#barcode", barcode, {
+                format: "code128",
+                // lineColor: "#0aa",
+                width: 2,
+                height: 30,
+                displayValue: true
+                });
+          function printDiv(divName) {
+          var printContents = document.getElementById(divName).innerHTML;
+          var originalContents = document.body.innerHTML;
+        
+          document.body.innerHTML = printContents;
+        
+          window.print();
+        
+          document.body.innerHTML = originalContents;
+        }
+        
+        
+        
+    </script>
+</body>
+</html>

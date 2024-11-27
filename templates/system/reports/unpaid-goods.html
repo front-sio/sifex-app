@@ -1,0 +1,151 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}unpaid invoices list{% endblock %}
+
+{% block page %}unpaid invoices list{% endblock page %}
+{% block slogan %}list of unpaid invoices{% endblock slogan %}
+
+{% block style %}
+<style>
+    .hide-accept-form, .hide-response-form, .hide-add-form {
+        display: none;
+    }
+
+    .logo-print {
+        display: none;
+    }
+
+    .print-title {
+        display: none;
+    }
+
+    @media print {
+        /* Hide the entire page except for the card */
+        body * {
+            visibility: hidden;
+        }
+        .card, .card * {
+            visibility: visible;
+        }
+        .card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .btn, .no-print {
+            display: none;
+        }
+
+        .logo-print, .print-title {
+            display: block !important;
+        }
+
+        .print-title {
+            text-align: left;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .logo-print {
+            width: 100px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Specific classes to hide title and URL */
+        .no-print-title, .no-print-url {
+            display: none;
+        }
+
+        /* Additional CSS to hide the default title and URL */
+        @page {
+            size: A4;
+            margin: 0; /* Remove the default margins */
+        }
+        body {
+            margin: 0; /* Remove the body margin */
+        }
+        .card {
+            margin: 0; /* Remove the card margin */
+            box-shadow: none; /* Remove any shadow */
+            width: auto;
+        }
+
+        .table {
+            width: 100%;
+            table-layout: auto; /* Adjust to content */
+            font-size: 10px; /* Smaller font size */
+        }
+        .table th, .table td {
+            padding: 4px; /* Reduced padding */
+            word-wrap: break-word; /* Allow breaking long words */
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <header class="card-header">
+        <div class="print-title">Unpaid Invoices List</div>
+        <div class="logo-print">
+            <img src="{% static 'home/assets/img/logo/loder.jpg' %}" alt="Logo">
+        </div>
+    </header>
+    <div class="card-content">
+        <div class="content table-responsive">
+            <button onclick="window.print()" class="btn btn-primary mb-3">Print Report</button>
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <!-- <th style="width: 5%;">&nbsp;</th> -->
+                        <th style="width: 10%;">INVOICE</th>
+                        <th style="width: 15%;">TRACKING NUMBER</th>
+                        <th style="width: 10%;">ORIGIN</th>
+                        <th style="width: 15%;">CUSTOMER</th>
+                        <th style="width: 10%;">DATE</th>
+                        <th style="width: 10%;">DUE DATE</th>
+                        <th style="width: 10%;">AMOUNT IN TZS</th>
+                        <th style="width: 5%;">STATUS</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td><input class="checkbox" type="checkbox" value="{{ invoice.id }}" name="invoice_id" size="1" /></td>
+                        <td>#{{ invoice.id }}</td>
+                        <td>{{ invoice.awb.awb }}</td>
+                        <td>{{ invoice.origin }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ invoice.date }}</td>
+                        <td>{{ invoice.due_date }}</td>
+                        <td>{{ invoice.total_amount_tzs }}</td>
+                        <td>
+                            {% if invoice.status == 'paid' %}
+                            <span>Paid</span>
+                            {% elif invoice.status == 'credited' %}
+                            <span>Credited</span>
+                            {% else %}
+                            <span>Not Paid</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}Freight List{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Freight List</h4>
+                    <a href="{% url 'create_freight' %}" class="btn btn-danger">Add Freight</a>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Freight Rate</th>
+                                <th>AWB Type</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for freight in freights %}
+                            <tr>
+                                <td>{{ freight.id }}</td>
+                                <td>{{ freight.freight_rete }}</td>
+                                <td>{{ freight.awb_type }}</td>
+                                <td class="text-center">
+                                    <a href="{% url 'update_freight' freight.id %}" class="btn btn-warning btn-sm">EDIT</a>
+                                    <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal" data-id="{{ freight.id }}">DELETE</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Are you sure you want to delete this freight?</p>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'delete_freight' 0 %}" id="deleteForm">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attach freight ID to the modal form action on button click
+        $('#deleteModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var freightId = button.data('id'); // Extract info from data-* attributes
+            var deleteForm = document.getElementById('deleteForm');
+            var action = deleteForm.getAttribute('action').replace('0', freightId);
+            deleteForm.setAttribute('action', action);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block style %}
+<style>
+    .custom-modal .modal-content {
+        border-radius: 10px;
+        background-color: #f8f9fa;
+        padding: 20px;
+    }
+    .custom-modal .modal-header {
+        border-bottom: 2px solid #dee2e6;
+    }
+    .custom-modal .modal-footer {
+        border-top: 2px solid #dee2e6;
+    }
+    .custom-modal .modal-title {
+        font-weight: bold;
+    }
+    .custom-modal .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .custom-modal .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+</style>
+{% endblock %}

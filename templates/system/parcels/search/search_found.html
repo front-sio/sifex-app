@@ -1,0 +1,283 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Search Result{% endblock %}
+
+{% block page %}Search Result{% endblock page %}
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+    
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+    <form id="awb-form" action="{% url 'awb-edit' master_awb.id %}" enctype="multipart/form-data" method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-3 col-lg-3 col-12">
+                <div class="form-group">
+                    <label for="">{{form.awb.label}}</label>
+                    {{form.awb|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.order_number.label}}</label>
+                    {{form.order_number|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-3 col-lg-3 col-12">
+                <div class="form-group">
+                    <label for="">{{form.sender_name.label}}</label>
+                    {{form.sender_name|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.sender_address.label}}</label>
+                    {{form.sender_address|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.receiver_name.label}}</label>
+                    {{form.receiver_name|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.receiver_address.label}}</label>
+                    {{form.receiver_address|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-3 col-lg-3 col-12">
+                <div class="form-group">
+                    <label for="">{{form.sender_tel.label}}</label>
+                    {{form.sender_tel|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.sender_city.label}}</label>
+                    {{form.sender_city|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.receiver_tel.label}}</label>
+                    {{form.receiver_tel|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.receiver_city.label}}</label>
+                    {{form.receiver_city|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-6 col-lg-6 col-12">
+                <div class="form-group">
+                    <label for="">{{form.sender_country.label}}</label>
+                    {{form.sender_country|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-6 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.receiver_country.label}}</label>
+                    {{form.receiver_country|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-5 col-lg-5 col-12">
+                <div class="form-group">
+                    <label for="">{{form.desc.label}}</label>
+                    {{form.desc|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-5 col-lg-5 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.freight.label}}</label>
+                    {{form.freight|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-5 col-lg-5 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.insurance.label}}</label>
+                    {{form.insurance|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-lg-2 col-12">
+                <div class="form-group">
+                    <label for="">{{form.awb_pcs.label}}</label>
+                    {{form.awb_pcs|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-2 col-lg-2 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.awb_kg.label}}</label>
+                    {{form.awb_kg|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-2 col-lg-2 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.chargable_weight.label}}</label>
+                    {{form.chargable_weight|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-2 col-lg-2 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.terms.label}}</label>
+                    {{form.terms|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col-md-3 col-lg-3 col-12">
+                <div class="form-group">
+                    <label for="">{{form.height.label}}</label>
+                    {{form.height|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.width.label}}</label>
+                    {{form.width|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.length.label}}</label>
+                    {{form.length|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.volume.label}}</label>
+                    {{form.volume|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-lg-3 col-12">
+                <div class="form-group">
+                    <label for="">{{form.date_received.label}}</label>
+                    {{form.date_received|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.expected_arrival_date.label}}</label>
+                    {{form.expected_arrival_date|attr:"readonly"}}
+                </div>
+            </div>
+            <div class="col-md-3 col-lg-3 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.currency.label}}</label>
+                    {{form.currency|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    
+        <div class="row" >
+            <div class="col-md-4 col-lg-4 col-12">
+                <div class="form-group">
+                    <label for="">{{form.custom_value.label}}</label>
+                    {{form.custom_value|attr:"readonly"}}
+                </div>
+            </div>
+           
+            <div class="col-md-4 col-lg-4 col-12">
+                <div class="form-group">
+                    <label for="">{{form.awb_type.label}}</label>
+                    {{form.awb_type|attr:"readonly"}}
+                </div>
+            </div>
+          
+            <div class="col-md-4 col-lg-4 col-sm-12">
+                <div class="form-group">
+                    <label for="">{{form.payment_mode.label}}</label>
+                    {{form.payment_mode|attr:"readonly"}}
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="d-grid">
+        <button id="edit-btn" class="btn btn-primary w-100">Edit</button>
+    </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row mt-3">
+            <div class="form-title">
+                <h4>History</h4>
+            </div>
+            <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in master_status %}
+                        <tr>
+                            <td>{{status.status}}</td>
+                            <td>{{status.terminal}}</td>
+                            <td>{{status.user}}</td>
+                            <td>{{status.date}}</td>
+                            <td>{{status.time}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    document.getElementById('edit-btn').addEventListener('click', function() {
+        window.location.href = "{% url 'parcel_view' master_awb.id %}";
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% block title %}my Dashboard{% endblock %}
+{% block content %}
+
+
+
+<div class="row">
+<div class="col-lg-12 col-sm-12 col-12 d-flex">
+<div class="card flex-fill">
+
+<div class="card-body">
+    
+    <div class="row">
+        <div id="qr-reader-results"></div>
+        <div style="display: flex; justify-content: center;">
+            <form action="" method="post">
+                <input type="text" id="staffcode">
+                <button class="btn btn-primary" id="check-btn">Check</button>
+            </form>
+        </div>
+    </div>
+   
+</div>
+</div>
+</div>
+
+</div>
+
+{% endblock %}
+{% block script %}
+<!-- CHECK IF DOM IS READY -->
+<script>
+    const checkBtn = document.getElementById('check-btn')
+
+    checkBtn.addEventListener('click', (e)=>{
+        e.preventDefault()
+
+        $.ajax({
+                    type: 'POST',
+                    url: '/sifex/check-staff-id/',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'staffcode': $('#staffcode').val(),
+                    },
+                    success: function(result){
+                        console.log(result)
+                        $.ajax({
+                    type: 'POST',
+                    url: '/sifex/mark-attendance-in/',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'staffcode': result.data.code_number,
+                    },
+                    success: function(res){
+                        console.log(res)
+                    },
+                    error: function(err){console.log(err)}
+                });
+                    },
+                    error: function(err){console.log(err)}
+                });
+    })
+   
+
+   
+</script>
+{% endblock %}

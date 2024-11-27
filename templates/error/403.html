@@ -1,0 +1,29 @@
+{% extends 'system/app/index.html' %}
+
+{% block title %}Access Denied{% endblock %}
+
+{% block style %}
+<style>
+    .error-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80vh;
+        text-align: center;
+    }
+    .error-page h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container error-page">
+    <div>
+        <h1>403 Forbidden</h1>
+        <p>You do not have permission to access this page.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Go to Home</a>
+    </div>
+</div>
+{% endblock %}

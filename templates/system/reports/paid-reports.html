@@ -1,0 +1,158 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Paid Invoices List{% endblock %}
+
+{% block page %}Paid Invoices List{% endblock %}
+{% block slogan %}List of Paid Invoices{% endblock %}
+
+{% block style %}
+<style>
+    .hide-accept-form, .hide-response-form, .hide-add-form {
+        display: none;
+    }
+
+    .logo-print {
+        display: none;
+    }
+
+    .print-title {
+        display: none;
+    }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .card, .card * {
+            visibility: visible;
+        }
+        .card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .btn, .no-print, .search-bar {
+            display: none;
+        }
+
+        .logo-print, .print-title {
+            display: block !important;
+        }
+
+        .print-title {
+            text-align: left;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .logo-print {
+            width: 100px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            margin: 0;
+        }
+        .card {
+            margin: 0;
+            box-shadow: none;
+            width: auto;
+        }
+
+        .table {
+            width: 100%;
+            table-layout: auto;
+            font-size: 10px;
+        }
+        .table th, .table td {
+            padding: 4px;
+            word-wrap: break-word;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <header class="card-header">
+        <div class="print-title">Paid Invoices List</div>
+        <div class="logo-print">
+            <img src="{% static 'home/assets/img/logo/loder.jpg' %}" alt="Logo">
+        </div>
+    </header>
+
+    {% if invoices %}
+    <div class="card-content">
+        <div class="content table-responsive">
+            <button onclick="window.print()" class="btn btn-primary mb-3">Print Report</button>
+
+            <!-- Summary Section -->
+            <div class="mb-4">
+                <h4>Total Paid Invoices: {{ total_invoices }}</h4>
+                <h4>Total Amount (TZS): {{ total_amount_tzs }}</h4>
+            </div>
+
+            <div class="search-bar">
+                <!-- Your search bar and filter functionality here, hidden in print mode -->
+            </div>
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">INVOICE</th>
+                        <th style="width: 15%;">TRACKING NUMBER</th>
+                        <th style="width: 10%;">ORIGIN</th>
+                        <th style="width: 15%;">CUSTOMER</th>
+                        <th style="width: 10%;">DATE</th>
+                        <th style="width: 10%;">DATE OF PAYMENT</th>
+                        <th style="width: 10%;">AMOUNT IN TZS</th>
+                        <th style="width: 5%;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>#{{ invoice.id }}</td>
+                        <td>{{ invoice.awb.awb }}</td>
+                        <td>{{ invoice.origin }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ invoice.date }}</td>
+                        <td>{{ invoice.date_of_payment }}</td>
+                        <td>{{ invoice.total_amount_tzs }}</td>
+                        <td>
+                            {% if invoice.status == 'paid' %}
+                            <span>Paid</span>
+                            {% elif invoice.status == 'credited' %}
+                            <span>Credited</span>
+                            {% else %}
+                            <span>Not Paid</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <h4 class="text-center">No paid invoices found for the selected date range.</h4>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

@@ -1,0 +1,145 @@
+
+{% extends 'home/base.html' %}
+{% block title %}parcel found{% endblock title %}
+{% block style %}
+<style>
+    .btn:hover {
+        color: #fff;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<br><br><br><br><br><br><br>
+<div class="container courier-tracking">
+<div class="row">
+<div class="col-md-6 col-lg-6 col-sm-12">
+            
+{% if courier_packages %}
+{% for courier in courier_packages %}
+
+<div class="card mt-15">
+    <div class="card-header">
+        <h5 class="card-header-text"><i class="icofont icofont-ui-note m-r-10"></i>{{courier.awb}} Details</h5>
+    </div>
+    <div class="card-body task-details">
+        <table class="table table-border table-xs">
+            <tbody>
+             
+                <tr>
+                    <td> From:</td>
+                    <td class="text-right"><span class="f-right">{{courier.sender_city}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> Destination:</td>
+                    <td class="text-right"><span class="f-right">{{courier.receiver_city}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> Pcs:</td>
+                    <td class="text-right"><span class="f-right">{{courier.awb_pcs}}</span></td>
+                </tr>
+
+                <tr>
+                    <td>Weight Kg:</td>
+                    <td class="text-right"><span class="f-right">{{courier.awb_kg}}</span></td>
+                </tr>
+
+
+
+                <tr>
+                    <td> Date recieved:</td>
+                    <td class="text-right"><span class="f-right">{{courier.date_received}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> Expected arrival date:</td>
+                    <td class="text-right"><span class="f-right">{{courier.expected_arrival_date}}</span></td>
+                </tr>
+              <center> <a href="{% url 'courier_detail' courier.id %}" class="btn btn-primary py-2 px-4 my-2">view all updates</a></center>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+{% for courier in courier_parcel %}
+<div class="card mt-15">
+    <div class="card-header">
+        <h5 class="card-header-text"><i class="icofont icofont-ui-note m-r-10"></i>{{courier.tracking_key}} Parcel Details</h5>
+    </div>
+    <div class="card-block task-details">
+        <table class="table table-border table-xs">
+            <tbody>
+             
+                <tr>
+                    <td> From:</td>
+                    <td class="text-right"><span class="f-right">{{courier.place_from}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> Destination:</td>
+                    <td class="text-right"><span class="f-right">{{courier.destination}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> Number of parcel:</td>
+                    <td class="text-right"><span class="f-right">{{courier.number_of_parcel}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> parcel volume:</td>
+                    <td class="text-right"><span class="f-right">{{courier.kgs}}</span></td>
+                </tr>
+
+                {% if courier.master_kgs %}
+                <tr>
+                    <td> Total package volume:</td>
+                    <td class="text-right"><span class="f-right">{{courier.master_kgs}}</span></td>
+                </tr>
+                {% endif %}
+
+
+                <tr>
+                    <td> date recieved:</td>
+                    <td class="text-right"><span class="f-right">{{courier.date_recieved}}</span></td>
+                </tr>
+
+                <tr>
+                    <td> Expected arrival date:</td>
+                    <td class="text-right"><span class="f-right">{{courier.expected_arrival_date}}</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <center> <a href="{% url 'courier_detail' courier.id %}" class="btn btn-primary py-2 px-4 my-2">view updates</a></center>
+
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+        </div>
+    </div>
+</div>
+<center>
+    <div class="container">
+        <div class="row">
+                
+            {% if errors %}
+            <div class="alert alert-danger col-lg-9 col-md-9 col-sm-12">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <i class="icofont"></i>
+                </button>
+                <center>
+            
+                <code>{{errors}}</code> 
+                
+                </center>
+                <a class="btn" href="{% url 'home' %}">Back Home</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</center>
+
+
+{% endblock %}

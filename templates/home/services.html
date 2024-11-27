@@ -1,0 +1,62 @@
+{% extends 'home/base.html' %}
+
+{% load static %}
+{% block title %}Our Services {% endblock title %}
+{% block content %} 
+
+<!--? slider Area Start-->
+<div class="slider-area ">
+    <div class="single-slider hero-overly slider-height2 d-flex align-items-center" data-background="/static/home/assets/img/hero/about.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="hero-cap">
+                        <h2>Our Services</h2>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="{% url 'services' %}">Our Services</a></li> 
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- slider Area End-->
+<!--? Categories Area Start -->
+<div class="categories-area section-padding30" data-background="/static/home/assets/img/gallery/section_bg04.jpg">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Section Tittle -->
+                <div class="section-tittle text-center mb-80 text-white">
+                    <span class="text-white">Our Services</span>
+                    <h2 class="text-white">What We Can Do For You</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            {% for service in services %}
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="single-cat text-center mb-50">
+                    <div class="cat-icon">
+                        <span class="{{service.icon}}"></span>
+                    </div>
+                    <div class="cat-cap">
+                        <h5 class="text-white"><a href="" class="text-white">{{service.title}}</a></h5>
+                        <p class="text-white">{{service.body}}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            
+        </div>
+    </div>
+</div>
+<!-- Categories Area End -->
+
+
+{% endblock %}

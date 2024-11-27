@@ -1,0 +1,438 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}Parcel Edit{% endblock %}
+
+{% block page %}Parcel Edit{% endblock %}
+{% block slogan %}Update your parcel{% endblock slogan %}
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+        .remark-field {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h2>Edit Parcel</h2>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form action="{% url 'awb-edit' master_awb.id %}" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-3 col-lg-3 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.awb.label}}</label>
+                        {{form.awb}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.order_number.label}}</label>
+                        {{form.order_number}}
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <div class="col-md-3 col-lg-3 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.sender_name.label}}</label>
+                        {{form.sender_name}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.sender_address.label}}</label>
+                        {{form.sender_address}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.receiver_name.label}}</label>
+                        {{form.receiver_name}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.receiver_address.label}}</label>
+                        {{form.receiver_address}}
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <div class="col-md-3 col-lg-3 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.sender_tel.label}}</label>
+                        {{form.sender_tel}}
+                    </div>
+                </div>
+    
+                <div class="col-md-3 col-lg-3 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.sender_company.label}}</label>
+                        {{form.sender_company}}
+                    </div>
+                </div>
+    
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.sender_city.label}}</label>
+                        {{form.sender_city}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.receiver_tel.label}}</label>
+                        {{form.receiver_tel}}
+                    </div>
+                </div>
+    
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.receiver_company.label}}</label>
+                        {{form.receiver_company}}
+                    </div>
+                </div>
+    
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.receiver_city.label}}</label>
+                        {{form.receiver_city}}
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <div class="col-md-6 col-lg-6 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.sender_country.label}}</label>
+                        {{form.sender_country}}
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-6 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.receiver_country.label}}</label>
+                        {{form.receiver_country}}
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <div class="col-md-5 col-lg-5 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.desc.label}}</label>
+                        {{form.desc}}
+                    </div>
+                </div>
+                <div class="col-md-5 col-lg-5 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.freight.label}}</label>
+                        {{form.freight}}
+                    </div>
+                </div>
+                <div class="col-md-5 col-lg-5 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.insurance.label}}</label>
+                        {{form.insurance}}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2 col-lg-2 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.awb_pcs.label}}</label>
+                        {{form.awb_pcs}}
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.awb_kg.label}}</label>
+                        {{form.awb_kg}}
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.chargable_weight.label}}</label>
+                        {{form.chargable_weight}}
+                    </div>
+                </div>
+                <div class="col-md-2 col-lg-2 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.terms.label}}</label>
+                        {{form.terms}}
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row">
+                <div class="col-md-3 col-lg-3 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.height.label}}</label>
+                        {{form.height}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.width.label}}</label>
+                        {{form.width}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.length.label}}</label>
+                        {{form.length}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.volume.label}}</label>
+                        {{form.volume}}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-lg-3 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.date_received.label}}</label>
+                        {{form.date_received}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.expected_arrival_date.label}}</label>
+                        {{form.expected_arrival_date}}
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-3 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.currency.label}}</label>
+                        {{form.currency}}
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row" >
+                <div class="col-md-4 col-lg-4 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.awb_type.label}}</label>
+                        {{form.awb_type}}
+                    </div>
+                </div>
+    
+                <div class="col-md-4 col-lg-4 col-12">
+                    <div class="form-group">
+                        <label for="">{{form.custom_value.label}}</label>
+                        {{form.custom_value}}
+                    </div>
+                </div>
+               
+              
+                <div class="col-md-4 col-lg-4 col-sm-12">
+                    <div class="form-group">
+                        <label for="">{{form.payment_mode.label}}</label>
+                        {{form.payment_mode}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Remark field -->
+            <div class="form-group">
+                <label for="remark">Remark for the Changes:</label>
+                <textarea id="remark" name="remark" class="form-control" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+       
+        <!-- Additional Forms and Sections -->
+        <!-- arr items content -->
+        <form action="{% url 'update_slave_arr' master_awb.id %}" method="POST" class="">
+            {% csrf_token %}
+            <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+                <input type="text" name="id" hidden value="{{master_awb.id}}">
+                <div class="col-md-5 col-lg-5 col-5">
+                    <div class="form-group">
+                        <label for="">{{form.arr_pcs.label}}</label>
+                        {{form.arr_pcs}}
+                    </div>
+                </div>
+               
+              
+                <div class="col-md-5 col-lg-5 col-sm-5">
+                    <div class="form-group">
+                        <label for="">{{form.arr_kg.label}}</label>
+                        {{form.arr_kg}}
+                    </div>
+                </div>
+        
+                <div class="col-md-2 col-lg-2 col-sm-2">
+                   
+                    <button type="submit" class="btn btn-primary">save</button>
+                
+                </div>
+            </div>
+        </form>
+    
+        <!-- dlv content start -->
+        <form action="{% url 'update_master_dlv' master_awb.id %}" method="POST" class="">
+            {% csrf_token %}
+            <div class="row" style="display: flex; justify-content: space-between; align-items: center;">
+                <input type="text" name="id" hidden value="{{master_awb.id}}">
+                <div class="col-md-5 col-lg-5 col-5">
+                    <div class="form-group">
+                        <label for="">{{form.dlv_pcs.label}}</label>
+                        {{form.dlv_pcs}}
+                    </div>
+                </div>
+        
+                <div class="col-md-5 col-lg-5 col-sm-5">
+                    <div class="form-group">
+                        <label for="">{{form.dlv_kg.label}}</label>
+                        {{form.dlv_kg}}
+                    </div>
+                </div>
+    
+                <div class="col-md-2 col-lg-2 col-sm-3">
+                    
+                    <button type="submit" class="btn btn-primary">save</button>
+                   
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% if request.user %}
+<div class="card">
+    <div class="card-body">
+        <a href="{% url 'accept_form_view' %}" class="btn btn-primary btn-block">Add New Awb</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="row mt-3">
+            <div class="form-title">
+                <h4>History</h4>
+            </div>
+            <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in master_status %}
+                        <tr>
+                            <td>{{status.status}}</td>
+                            <td>{{status.terminal}}</td>
+                            <td>{{status.user}}</td>
+                            <td>{{status.date}}</td>
+                            <td>{{status.time}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+       
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formFields = document.querySelectorAll('input[type="text"], select, textarea');
+    const remarkField = document.getElementById('remark');
+
+    formFields.forEach(field => {
+        field.addEventListener('change', function() {
+            // Set the remark field as required if any form field changes
+            remarkField.setAttribute('required', 'required');
+        });
+    });
+
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        const remark = remarkField.value.trim();
+        if (!remark) {
+            event.preventDefault();
+            alert("You must provide a remark before submitting.");
+        }
+    });
+
+    // JavaScript for Freight Calculation
+    const awbTypeField = document.getElementById('id_awb_type');
+    const freightField = document.getElementById('id_freight');
+    const chargableWeightField = document.getElementById('id_chargable_weight');
+
+    // Function to calculate freight
+    function calculateFreight(rate, weight) {
+        return (rate * weight).toFixed(2);
+    }
+
+    // Update freight field whenever AWB Type or Chargable Weight changes
+    function updateFreight() {
+        const awbType = awbTypeField.value;
+        const chargableWeight = parseFloat(chargableWeightField.value) || 0;
+        
+        if (awbType) {
+            fetch(`/sifex/get-freight-by-awb-type/?awb_type=${encodeURIComponent(awbType)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.freights && data.freights.length > 0) {
+                    const rate = parseFloat(data.freights[0].rate);
+                    const freight = calculateFreight(rate, chargableWeight);
+                    freightField.value = freight;
+                } else if (data.error) {
+                    console.error(data.error);
+                    freightField.value = 'Error';
+                } else {
+                    console.error("No freights found for the selected AWB type.");
+                    freightField.value = 'N/A';
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching freights:", error);
+                freightField.value = 'Error';
+            });
+        } else {
+            freightField.value = 'N/A'; // Clear the field if no AWB Type is selected
+        }
+    }
+
+    // Event listeners to trigger the freight calculation
+    awbTypeField.addEventListener('change', updateFreight);
+    chargableWeightField.addEventListener('input', updateFreight);
+});
+</script>
+{% endblock %}

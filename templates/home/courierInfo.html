@@ -1,0 +1,48 @@
+{% extends 'home/base.html' %}
+
+{% load static %}
+{% block title %}parcel info {% endblock title %}
+{% block content %} 
+<!-- Notification Start -->
+<br><br><br><br><br>
+<div class="col-lg-12">
+    <div class="row chat-window">
+    
+    <div class="col-lg-12 col-xl-12 chat-cont-left">
+    <div class="card mb-sm-3 mb-md-0 contacts_card flex-fill">
+    <div class="card-body contacts_body chat-users-list chat-scroll">
+    {% for awb in courier_details %}
+    <a href="javascript:void(0);" class="media d-flex active">
+    <div class="media-img-wrap flex-shrink-0">
+    <div class="avatar avatar-away">
+    </div>
+    </div>
+    <div class="media-body flex-grow-1">
+    <div>
+    <div class="user-name">history: {{awb.status}}</div>
+    <div class="user-last-chat">terminal: {{awb.terminal}}</div>
+    <div class="user-last-chat">Note: {{awb.note}}</div>
+    {% if awb.status == 'POD'  %}
+    <h4>POD section:</h4>
+    <div class="badge badge-success badge-pill">Receiver name: {{awb.delivered_to}}</div>
+    {% endif %}
+    </div>
+    <div>
+    <div class="last-chat-time">{{awb.date}}</div>
+    <div class="badge badge-success badge-pill">{{awb.time}}</div>
+   
+    </div>
+    </div>
+    </a>
+    {% endfor %}
+    </div>
+    </div>
+    </div>
+    
+    
+    </div>
+</div>
+  <!-- Notification End -->
+
+
+{% endblock %}

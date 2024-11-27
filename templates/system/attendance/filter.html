@@ -1,0 +1,67 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Generate report{% endblock %}
+
+{% block page %}Generate report{% endblock page %}
+{% block slogan %}Generate report{% endblock slogan %} 
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+    <div class="table-top">
+        {% include 'system/partials/_messages.html' %}
+    </div>
+    
+    
+      <form action="{% url 'attendance' %}" method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-6">
+                <div class="form-group">
+                    <input required type="date" name="date_from" id="" class="form-control">
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-6 col-6">
+                <div class="form-group">
+                    <input required type="date" name="date_to" id="" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-12">
+                
+                <button type="submit" class="btn btn-primary btn-block">Report</button>
+                
+            </div>
+        </div>
+      </form>
+    
+    
+  
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

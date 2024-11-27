@@ -1,0 +1,99 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Generate Sales Report{% endblock %}
+
+{% block page %}Generate Sales Report{% endblock page %}
+{% block slogan %}Generate Sales Report{% endblock slogan %} 
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            {% include 'system/partials/_messages.html' %}
+        </div>
+        
+        <form action="{% url 'generate_sales_report' %}" method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <label for="date_from">Date From:</label>
+                        <input required type="date" id="id_date" placeholder="Choose Date From" name="date_from" class="form-control">
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-6 col-6">
+                    <div class="form-group">
+                        <label for="date_to">Date To:</label>
+                        <input required type="date" id="id_date" placeholder="Choose Date Range To" name="date_to" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-12">
+                    <div class="form-group">
+                        <label for="invoice_detail">Invoice Detail:</label>
+                        <select name="invoice_detail" id="invoice_detail" class="form-control">
+                            <option value="cash">Cash</option>
+                            <option value="bank">Bank</option>
+                            <option value="mobile">Mobile</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-12">
+                    <button type="submit" class="btn btn-primary btn-block">Generate Report</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<!-- Include Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Include Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+     document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#id_date", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
+            flatpickr("#id_due_date", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
+            flatpickr("#id_time", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                allowInput: true
+            });
+        });
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}accept parcel{% endblock %}
+
+{% block page %}Acceptance parcel form{% endblock page %}
+{% block slogan %}fill parcel information properly{% endblock slogan %}    
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="parcel_form">
+    <div class="card" id="accept-form-wraper">
+        <div class="card-body">
+            <form action="{% url 'on_edit_save_awb' %}" method="post" class="accept-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 col-lg-6 col-sm-6">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                                <input type="text" hidden name="id" value="{{master_awb_id.id}}">
+                                <div class="form-group">
+                                    <label for="awb" class="">AWB</label>
+                                    {% render_field form.awb class+="form-control" placeholder="AWB (Air way bill)" %}
+                                    <button type="button" class="btn btn-primary mt-3" id="awb-btn">request key</button>
+                                </div>
+                                
+                                </div>
+                                <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                                    <div class="form-group">
+                                        <label for="order_number" class="">order number</label>
+                                        {% render_field form.order_number class+="form-control" placeholder="order number" %}
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="otherfields mb-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="desc">Desc</label>
+                            {% render_field form.desc class+="form-control" %}
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="freight">freight</label>
+                            {% render_field form.freight class+="form-control" %}
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="insurance">insurance</label>
+                            {% render_field form.insurance class+="form-control" %}
+                        </div>
+                       
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="awb_pcs">AWB pcs</label>
+                            {% render_field form.awb_pcs class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="awb_kg">AWB kg</label>
+                            {% render_field form.awb_kg class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="chargable_weight">C.W</label>
+                            {% render_field form.chargable_weight class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="terms">terms</label>
+                            {% render_field form.terms class+="form-control" %}
+                        </div>
+                       
+                       
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="height">height</label>
+                            {% render_field form.height class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="width">width</label>
+                            {% render_field form.width class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="length">length</label>
+                            {% render_field form.length class+="form-control" %}
+                        </div>
+
+                        <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                            <label for="volume">Volume</label>
+                            <input type="text" class="form-control" disabled id="id_volume">
+                        </div>
+                        
+
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="date_received">Date received</label>
+                            {% render_field form.date_received class+="form-control" %}
+                        </div>
+
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="expected_arrival_date">expected arrival date</label>
+                            {% render_field form.expected_arrival_date class+="form-control" %}
+                        </div>
+                       
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="currency">currency</label>
+                            {% render_field form.currency class+="form-control" %}
+                        </div>
+                        <!--  -->
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="custom_value">custom value</label>
+                            {% render_field form.custom_value class+="form-control" %}
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="payment_mode">payment mode</label>
+                            {% render_field form.payment_mode class+="form-control" %}
+                        </div>
+
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="awb_type">awb type</label>
+                            {% render_field form.awb_type class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 col-md-8 col-sm-6 col-6">
+                        <div class="row mt-9">
+                            <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                                <button type="submit" class="btn btn-primary"> save</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 col-6">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                                <button type="reset" class="btn btn-danger">cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+ 
+{% endblock %}
+{% block script %}
+
+<!-- Include Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Include Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+     document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#id_date_received", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
+            flatpickr("#id_expected_arrival_date", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
+            flatpickr("#id_time", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                allowInput: true
+            });
+        });
+</script>
+<script>
+    function getKeys(){
+
+        
+    var today = new Date();
+    var mydate = today.getDate();
+
+    var myDay = today.getUTCDay();
+    var tt = today.getTime();
+    var myhrs = today.getHours();
+    var myminutes = today.getMinutes();
+    var myseconds = today.getSeconds();
+
+    var mymonth = today.getMonth()+1; 
+    var myyear = today.getFullYear().toString().substr(-2);
+    if(mydate<10) 
+    {
+        mydate='0'+mydate;
+    } 
+
+    if(mymonth<10) 
+    {
+        mymonth='0'+mymonth;
+    } 
+
+    today = 'SX'+mydate+''+mymonth+''+myyear+''+myhrs+''+myminutes+''+myseconds+''+myDay;
+
+    document.getElementById("id_awb").value = today;
+    }
+
+    document.getElementById('awb-btn').addEventListener("click", getKeys);
+</script>
+{% endblock %}

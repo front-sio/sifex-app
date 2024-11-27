@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Under Construction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: url("{% static 'assets/images/15694157_5623406.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5); /* Black overlay with 50% opacity */
+            z-index: 0;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+            color: white; /* Make text white to stand out against the dark overlay */
+        }
+        h1 {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>We're Under Construction</h1>
+        <p>Our website is currently undergoing scheduled maintenance. Please check back soon.</p>
+        <h3>Call Us Anytime</h3>
+        <h4>Tanzania: +255 688 930 963</h4>
+        <h4>China: +86 19578215520</h4>
+        <h4>Dubai: +971 50 572 7664</h4>
+    </div>
+</body>
+</html>

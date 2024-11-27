@@ -1,0 +1,61 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% block title %}create new blog post{% endblock %}
+
+{% block page %}create new blog post{% endblock page %}
+{% block slogan %}add a blog post{% endblock slogan %}    
+ 
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+<div class="card">
+<div class="card-body">
+    {% include 'system/partials/_messages.html' %}
+    <form action="{% url 'blog_create' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-6 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text"  name="title">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Body</label>
+                    <textarea type="text"  name="body"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>Body</label>
+                    <input type="file" accept="image/*" name="photo" id="">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 col-sm-12">
+                <button type="submit" class="btn btn-submit me-2">Share</button>
+                <button type="reset" class="btn btn-cancel">Clear</button>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock content %}

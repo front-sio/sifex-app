@@ -1,0 +1,800 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}accept parcel{% endblock %}
+
+{% block page %}Acceptance parcel form{% endblock page %}  
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+        .is-invalid {
+            border-color: red;
+        }
+        .loading {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% include 'system/partials/_messages.html' %}
+<div class="parcel_form">
+    <div class="card" id="accept-form-wraper">
+        <div class="card-body">
+            <form action="" method="post" id="accept-form" class="accept-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 col-lg-6 col-sm-6">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="awb" class="">AWB</label>
+                                    <input type="text" class="form-control" id="id_awb" disabled value="">
+                                    <button type="button" class="btn btn-primary mt-3" id="awb-btn">request key</button>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="order_number" class="">order number</label>
+                                    {% render_field form.order_number class+="form-control" placeholder="order number" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-12">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="sender_name" class="">sender name</label>
+                                    {% render_field form.sender_name class+="form-control" placeholder="sender name" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="sender_address" class="control-label">sender address</label>
+                                    {% render_field form.sender_address class+="form-control" placeholder="sender address" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="sender_tel" class="control-label">sender tel</label>
+                                    {% render_field form.sender_tel class+="form-control" placeholder="sender tel" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="sender_company" class="control-label">sender company</label>
+                                    {% render_field form.sender_company class+="form-control" placeholder="sender company" %}
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="sender_city" class="control-label">sender city</label>
+                                    {% render_field form.sender_city class+="form-control" placeholder="sender city" %}
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="sender_country" class="control-label">sender country</label>
+                                    {% render_field form.sender_country class+="form-control" placeholder="sender country" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-12 col-12">
+                        <div class="row">
+                            <div class="col-lg-5 col-md-5 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="receiver_name" class="">receiver name</label>
+                                    {% render_field form.receiver_name class+="form-control" placeholder="receiver name" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="receiver_address" class="control-label">receiver address</label>
+                                    {% render_field form.receiver_address class+="form-control" placeholder="receiver address" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="receiver_tel" class="control-label">receiver tel</label>
+                                    {% render_field form.receiver_tel class+="form-control" placeholder="receiver tel" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="receiver_company" class="control-label">receiver company</label>
+                                    {% render_field form.receiver_company class+="form-control" placeholder="receiver company" %}
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="receiver_city" class="control-label">receiver city</label>
+                                    {% render_field form.receiver_city class+="form-control" placeholder="receiver city" %}
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                                <div class="form-group">
+                                    <label for="receiver_country" class="control-label">receiver country</label>
+                                    {% render_field form.receiver_country class+="form-control" placeholder="receiver country" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="otherfields mb-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="desc">Desc</label>
+                            {% render_field form.desc class+="form-control" %}
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="freight">freight</label>
+                            <input type="text" class="form-control" id="id_freight" disabled>
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="insurance">insurance</label>
+                            {% render_field form.insurance class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="awb_pcs">AWB pcs</label>
+                            {% render_field form.awb_pcs class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="awb_kg">AWB kg</label>
+                            {% render_field form.awb_kg class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="chargable_weight">C.W</label>
+                            {% render_field form.chargable_weight class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="terms">terms</label>
+                            {% render_field form.terms class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="height">height</label>
+                            {% render_field form.height class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="width">width</label>
+                            {% render_field form.width class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="length">length</label>
+                            {% render_field form.length class+="form-control" %}
+                        </div>
+                        <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                            <label for="volume">Volume</label>
+                            <input type="text" class="form-control" id="id_volume" disabled>
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="date_received">Date received</label>
+                            {% render_field form.date_received class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="expected_arrival_date">expected arrival date</label>
+                            {% render_field form.expected_arrival_date class+="form-control" %}
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="currency">currency</label>
+                            {% render_field form.currency class+="form-control" %}
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="custom_value">custom value</label>
+                            {% render_field form.custom_value class+="form-control" %}
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="payment_mode">payment mode</label>
+                            {% render_field form.payment_mode class+="form-control" %}
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="awb_type">awb type</label>
+                            {% render_field form.awb_type class+="form-control" %}
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="freight_rate">Freight Rate</label>
+                            <input type="text" class="form-control" id="id_freight_rate" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-8 col-md-8 col-sm-6 col-6">
+                        <div class="row mt-9">
+                            <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                                <button type="submit" id="save-accept-btn" class="btn btn-primary"> save</button>
+                                <button type="button" id="loader-btn" class="btn btn-primary loading d-none">Loading...</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 col-6">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                                <button type="reset" class="btn btn-danger">cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- response form section -->
+    <div class="card hide-response-form" id="response-form-wraper">
+
+    </div>
+
+    <div class="card hide-parcel-display" id="parcel_display"></div>
+
+    <div class="card hide-add-form" id="add-form-wraper">
+        <div class="card-body">
+            <form action="" method="post" id="accept-form" class="accept-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                        <div class="form-group">
+                            <label for="awb" class="">AWB</label>
+                            <input type="text" class="form-control" id="res_id_awb" value="">
+                            <button type="button" class="btn btn-primary mt-3" id="request-key">request key</button>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-5 col-sm-12 col-12">
+                        <div class="form-group">
+                            <label for="order_number" class="">order number</label>
+                            <input type="text" class="form-control" id="res_id_order_number" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="otherfields mb-3">
+                    <div class="row awb-form">
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="desc">Desc</label>
+                            <input type="text" class="form-control" id="res_id_desc" value="">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="freight">freight</label>
+                            <input type="text" class="form-control" id="res_id_freight" value="">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="insurance">insurance</label>
+                            <input type="text" class="form-control" id="res_id_insurance" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-2 col-2">
+                            <label for="awb_pcs">AWB pcs</label>
+                            <input type="text" class="form-control" id="res_id_awb_pcs" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-2 col-2">
+                            <label for="awb_kg">AWB kg</label>
+                            <input type="text" class="form-control" id="res_id_awb_kg" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-2 col-2">
+                            <label for="chargable_weight">C.W</label>
+                            <input type="text" class="form-control" id="res_id_chargable_weight" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="terms">terms</label>
+                            <input type="text" class="form-control" id="res_id_terms" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="height">height</label>
+                            <input type="text" class="form-control input" id="res_id_height" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="width">width</label>
+                            <input type="text" class="form-control input" id="res_id_width" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="length">length</label>
+                            <input type="text" class="form-control input" id="res_id_length" value="">
+                        </div>
+                        <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                            <label for="volume">Volume</label>
+                            <input type="text" class="form-control" id="res_id_volume" disabled value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="dlv_kg">currency</label>
+                            <input type="text" class="form-control" id="res_id_currency" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="dlv_kg">date received</label>
+                            <input type="date" class="form-control" id="res_id_date_received" value="">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="dlv_kg">expected arrival date</label>
+                            <input type="date" class="form-control" id="res_id_expected_arrival_date" value="">
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="awb_type">awb type</label>
+                            {% render_field form.awb_type class+="form-control" %}
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="custom_value">custom value</label>
+                            <input type="text" class="form-control" id="res_id_custom_value" value="">
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                            <label for="payment_mode">payment mode</label>
+                            <input type="text" class="form-control" id="res_id_payment_mode" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-9">
+                    <div class="col-lg-8 col-md-8 col-sm-6 col-6">
+                        <div class="row mt-9">
+                            <div class="col-md-6 col-lg-6 col-sm-12">
+                                <button type="button" id="save-parcel-btn" class="btn btn-primary">save</button>
+                                <button type="button" id="loader-btn-parcel" class="btn btn-primary loading d-none">Loading...</button>
+                            </div>
+                            <div class="col-md-3 col-lg-3 col-sm-12">
+                                <button type="button" id="edit-response-btn" class="btn btn-primary disabled"> edit</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 col-6">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                                <a href="/sifex/accept_console/" class="btn btn-danger">cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<!-- Include Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Include Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+     document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#id_date_received", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
+            flatpickr("#id_expected_arrival_date", {
+                dateFormat: "Y-m-d",
+                allowInput: true
+            });
+            flatpickr("#id_time", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                allowInput: true
+            });
+        });
+</script>
+
+<script>
+    function calculateVolume() {
+        const width = parseFloat(document.getElementById('id_width').value) || 0;
+        const height = parseFloat(document.getElementById('id_height').value) || 0;
+        const length = parseFloat(document.getElementById('id_length').value) || 0;
+        const volume = (width * height * length) / 5000;
+        document.getElementById('id_volume').value = volume.toFixed(2);
+    }
+
+    document.getElementById('id_width').addEventListener('input', calculateVolume);
+    document.getElementById('id_height').addEventListener('input', calculateVolume);
+    document.getElementById('id_length').addEventListener('input', calculateVolume);
+</script>
+
+<script>
+    const acceptContainer = document.getElementById('accept-form-wraper');
+    const responseContainer = document.getElementById('response-form-wraper');
+    const addParcelContainer = document.getElementById('add-form-wraper');
+    const acceptBtn = document.getElementById('save-accept-btn');
+    const addParcelBtn = document.getElementById('save-parcel-btn');
+    const loaderBtn = document.getElementById('loader-btn');
+    const loaderBtnParcel = document.getElementById('loader-btn-parcel');
+    const awbBtn = document.getElementById('awb-btn');
+
+    const requiredFields = [
+        'id_awb', 'id_order_number', 'id_sender_name', 'id_sender_tel', 'id_sender_address',
+        'id_sender_city', 'id_sender_country', 'id_receiver_name', 'id_receiver_address',
+        'id_receiver_tel', 'id_receiver_city', 'id_receiver_country', 'id_awb_type',
+        'id_desc', 'id_freight', 'id_insurance', 'id_awb_pcs', 'id_awb_kg', 'id_chargable_weight',
+        'id_terms', 'id_width', 'id_height', 'id_length', 'id_currency', 'id_date_received',
+        'id_expected_arrival_date', 'id_custom_value', 'id_payment_mode'
+    ];
+
+    function validateForm() {
+        let isValid = true;
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field && field.value.trim() === '') {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else if (field) {
+                field.classList.remove('is-invalid');
+            }
+        });
+        return isValid;
+    }
+
+    function hideacceptform(e) {
+        e.preventDefault();
+        if (!validateForm()) {
+            alert('Please fill out all required fields.');
+            return;
+        }
+
+        acceptBtn.classList.add('d-none');
+        loaderBtn.classList.remove('d-none');
+
+        $.ajax({
+            type: 'POST',
+            url: "/sifex/accept/",
+            data: {
+                'csrfmiddlewaretoken': csrftoken,
+                'awb': document.getElementById('id_awb').value,
+                'order_number': document.getElementById('id_order_number').value,
+                'sender_name': document.getElementById('id_sender_name').value,
+                'sender_tel': document.getElementById('id_sender_tel').value,
+                'sender_address': document.getElementById('id_sender_address').value,
+                'sender_city': document.getElementById('id_sender_city').value,
+                'sender_company': document.getElementById('id_sender_company').value,
+                'receiver_company': document.getElementById('id_receiver_company').value,
+                'sender_country': document.getElementById('id_sender_country').value,
+                'receiver_name': document.getElementById('id_receiver_name').value,
+                'receiver_address': document.getElementById('id_receiver_address').value,
+                'receiver_tel': document.getElementById('id_receiver_tel').value,
+                'receiver_city': document.getElementById('id_receiver_city').value,
+                'receiver_country': document.getElementById('id_receiver_country').value,
+                'awb_type': document.getElementById('id_awb_type').value,
+                'desc': document.getElementById('id_desc').value,
+                'freight': document.getElementById('id_freight').value,
+                'freight_rate': document.getElementById('id_freight_rate').value,
+                'insurance': document.getElementById('id_insurance').value,
+                'awb_pcs': document.getElementById('id_awb_pcs').value,
+                'awb_kg': document.getElementById('id_awb_kg').value,
+                'chargable_weight': document.getElementById('id_chargable_weight').value,
+                'terms': document.getElementById('id_terms').value,
+                'volume': document.getElementById('id_volume').value,
+                'width': document.getElementById('id_width').value,
+                'height': document.getElementById('id_height').value,
+                'length': document.getElementById('id_length').value,
+                'currency': document.getElementById('id_currency').value,
+                'date_received': document.getElementById('id_date_received').value,
+                'expected_arrival_date': document.getElementById('id_expected_arrival_date').value,
+                'custom_value': document.getElementById('id_custom_value').value,
+                'payment_mode': document.getElementById('id_payment_mode').value,
+            },
+            success: (res) => {
+                acceptContainer.classList.add('hide-accept-form');
+                responseContainer.classList.remove('hide-response-form');
+                responseContainer.innerHTML += `
+                <div class="card-body">
+                <form method="post" id="response-form" class="accept-form" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-lg-6 col-md-5 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="awb" class="">AWB</label>
+                            <input type="text" disabled class="form-control" id="id_awb" value="${res.awb}">
+                            <input type="text" disabled class="form-control" hidden id="parcel_id" value="${res.id}">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-5 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="order_number" class="">order number</label>
+                            <input type="text" disabled class="form-control" id="id_order_number" value="${res.order_number}">
+                        </div>
+                    </div>
+                </div>
+
+
+                 <div class="row">
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="sender_name">Sender Name</label>
+                            <input type="text" disabled class="form-control" id="id_sender_name" value="${res.sender_name}">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-4 col-4">
+                            <label for="sender_address">Sender Address</label>
+                            <input type="text" disabled class="form-control" id="id_sender_address" value="${res.sender_address}">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="receiver_name">Receiver Name</label>
+                            <input type="text" disabled class="form-control" id="id_receiver_name" value="${res.receiver_name}">
+                        </div>
+                    
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="receiver_address">Receiver Address</label>
+                            <input type="text" disabled class="form-control" id="id_receiver_address" value="${res.receiver_address}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="sender_tel">Sender Mobile Number</label>
+                            <input type="text" disabled class="form-control" id="id_sender_tel" value="${res.sender_tel}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="sender_company">Sender Company</label>
+                            <input type="text" disabled class="form-control" id="id_sender_company" value="${res.sender_company}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="receiver_tel">Receiver Mobile Number</label>
+                            <input type="text" disabled class="form-control" id="id_receiver_tel" value="${res.receiver_tel}">
+                        </div>
+                        
+                        <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                            <label for="receiver_company">Receiver Company</label>
+                            <input type="text" disabled class="form-control" id="id_receiver_company" value="${res.receiver_company}">
+                        </div>
+                </div>
+
+
+                <div class="otherfields mb-3">
+                    <div class="row">
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="desc">Desc</label>
+                            <input type="text" disabled class="form-control" id="id_desc" value="${res.desc}">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-4 col-4">
+                            <label for="freight">freight</label>
+                            <input type="text" disabled class="form-control" id="id_freight" value="${res.freight}">
+                        </div>
+                         <div class="col-md-4 col-lg-4 col-sm-4 col-4">
+                            <label for="freight_rate">freight rate</label>
+                            <input type="text" disabled class="form-control" id="id_freight_rate" value="${res.freight_rate}">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                            <label for="insurance">insurance</label>
+                            <input type="text" disabled class="form-control" id="id_insurance" value="${res.insurance}">
+                        </div>
+                    
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="awb_pcs">AWB pcs</label>
+                            <input type="text" disabled class="form-control" id="id_awb_pcs" value="${res.awb_pcs}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="awb_kg">AWB kg</label>
+                            <input type="text" disabled class="form-control" id="id_awb_kg" value="${res.awb_kg}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="chargable_weight">C.W</label>
+                            <input type="text" disabled class="form-control" id="id_chargable_weight" value="${res.chargable_weight}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="terms">terms</label>
+                            <input type="text" disabled class="form-control" id="id_terms" value="${res.terms}">
+                        </div>
+                        
+                        <div class="col-md-3 col-lg-3 col-sm-12 col-12">
+                            <label for="volume">Volume</label>
+                            <input type="text" disabled class="form-control" id="id_volume" value="${res.volume}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="height">height</label>
+                            <input type="text" disabled class="form-control" id="id_height" value="${res.height}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-12 col-12">
+                            <label for="width">width</label>
+                            <input type="text" disabled class="form-control" id="id_width" value="${res.width}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-2 col-2">
+                            <label for="length">length</label>
+                            <input type="text" disabled class="form-control" id="id_length" value="${res.length}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="dlv_kg">currency</label>
+                            <input type="text" disabled class="form-control" id="id_currency" value="${res.currency}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="dlv_kg">date received</label>
+                            <input type="text" disabled class="form-control" id="id_date_received" value="${res.date_received}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                            <label for="dlv_kg">expected arrival date</label>
+                            <input type="text" disabled class="form-control" id="id_expected_arrival_date" value="${res.expected_arrival_date}">
+                        </div>
+                        <div class="col-md-2 col-lg-2 col-sm-6 col-6">
+                        <label for="awb_type">awb type</label>
+                        <input type="text" disabled class="form-control" id="id_awb_type" value="${res.awb_type}">
+                    </div>
+                        <!--  -->
+                        <div class="col-md-4 col-lg-4 col-sm-4 col-4">
+                            <label for="custom_value">custom value</label>
+                            <input type="text" disabled class="form-control" id="id_custom_value" value="${res.custom_value}">
+                        </div>
+                        <div class="col-md-4 col-lg-4 col-sm-4 col-4">
+                            <label for="payment_mode">payment mode</label>
+                            <input type="text" disabled class="form-control" id="id_payment_mode" value="${res.payment_mode}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row m-9">
+                    <div class="col-lg-8 col-md-8 col-sm-6 col-6">
+                       
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 col-6">
+                        <div class="row">
+                            <div class="col-md-4 col-lg-4 col-sm-4">
+                                <a href="/sifex/accept_console/" class="btn btn-danger">cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+                
+        `;
+            const addBtn = document.getElementById('add-parcel-btn');
+            function showAddParccelForm() {
+                addParcelContainer.classList.remove('hide-add-form');
+            }
+
+            addBtn.addEventListener('click', showAddParccelForm);
+            loaderBtn.classList.add('d-none');
+            acceptBtn.classList.remove('d-none');
+            },
+            error: (err) => {
+                console.log(err);
+                loaderBtn.classList.add('d-none');
+                acceptBtn.classList.remove('d-none');
+            }
+        });
+    }
+
+    function sendAddParcel(e) {
+        e.preventDefault();
+        if (!validateForm()) {
+            alert('Please fill out all required fields.');
+            return;
+        }
+
+        addParcelBtn.classList.add('d-none');
+        loaderBtnParcel.classList.remove('d-none');
+
+        $.ajax({
+            type: 'POST',
+            url: '/sifex/save_parcel/',
+            data: {
+                'csrfmiddlewaretoken': csrftoken,
+                'id': document.getElementById('parcel_id').value,
+                'desc': document.getElementById('res_id_desc').value,
+                'freight': document.getElementById('res_id_freight').value,
+                'insurance': document.getElementById('res_id_insurance').value,
+                'awb_pcs': document.getElementById('res_id_awb_pcs').value,
+                'awb_kg': document.getElementById('res_id_awb_kg').value,
+                'chargable_weight': document.getElementById('res_id_chargable_weight').value,
+                'terms': document.getElementById('res_id_terms').value,
+                'volume': document.getElementById('res_id_volume').value,
+                'width': document.getElementById('res_id_width').value,
+                'height': document.getElementById('res_id_height').value,
+                'length': document.getElementById('res_id_length').value,
+                'currency': document.getElementById('res_id_currency').value,
+                'date_received': document.getElementById('res_id_date_received').value,
+                'expected_arrival_date': document.getElementById('res_id_expected_arrival_date').value,
+                'custom_value': document.getElementById('res_id_custom_value').value,
+                'payment_mode': document.getElementById('res_id_payment_mode').value,
+            },
+            success: (response) => {
+                console.log(response);
+                addParcelContainer.classList.add('hide-add-form');
+                loaderBtnParcel.classList.add('d-none');
+                addParcelBtn.classList.remove('d-none');
+            },
+            error: (err) => {
+                console.log(err);
+                loaderBtnParcel.classList.add('d-none');
+                addParcelBtn.classList.remove('d-none');
+            },
+        });
+    }
+
+    acceptBtn.addEventListener('click', hideacceptform);
+    addParcelBtn.addEventListener('click', sendAddParcel);
+
+    function getKeys() {
+        var today = new Date();
+        var mydate = today.getDate();
+        var myDay = today.getUTCDay();
+        var tt = today.getTime();
+        var myhrs = today.getHours();
+        var myminutes = today.getMinutes();
+        var myseconds = today.getSeconds();
+        var mymonth = today.getMonth() + 1;
+        var myyear = today.getFullYear().toString().substr(-2);
+        if (mydate < 10) {
+            mydate = '0' + mydate;
+        }
+        if (mymonth < 10) {
+            mymonth = '0' + mymonth;
+        }
+        today = 'SX' + mydate + '' + mymonth + '' + myyear + '' + myhrs + '' + myminutes + '' + myseconds + '' + myDay;
+        document.getElementById("id_awb").value = today;
+    }
+
+    document.getElementById('awb-btn').addEventListener("click", getKeys);
+
+    function getParcelKeys() {
+        var today = new Date();
+        var mydate = today.getDate();
+        var myDay = today.getUTCDay();
+        var tt = today.getTime();
+        var myhrs = today.getHours();
+        var myminutes = today.getMinutes();
+        var myseconds = today.getSeconds();
+        var mymonth = today.getMonth() + 1;
+        var myyear = today.getFullYear().toString().substr(-2);
+        if (mydate < 10) {
+            mydate = '0' + mydate;
+        }
+        if (mymonth < 10) {
+            mymonth = '0' + mymonth;
+        }
+        today = 'SX' + mydate + '' + mymonth + '' + myyear + '' + myhrs + '' + myminutes + '' + myseconds + '' + myDay;
+        document.getElementById("res_id_awb").value = today;
+    }
+
+    document.getElementById('request-key').addEventListener("click", getParcelKeys);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const awbTypeField = document.getElementById('id_awb_type');
+        const freightRateField = document.getElementById('id_freight_rate');
+        const freightField = document.getElementById('id_freight');
+        const chargableWeightField = document.getElementById('id_chargable_weight');
+
+        // Function to calculate freight based on rate and chargable weight
+        function calculateFreight(rate, weight) {
+            return (rate * weight).toFixed(2);
+        }
+
+        // Update freight rate and freight fields whenever AWB Type or Chargable Weight changes
+        function updateFreightAndRate() {
+            const awbType = awbTypeField.value;
+            const chargableWeight = parseFloat(chargableWeightField.value) || 0;
+
+            if (awbType) {
+                fetch(`/sifex/get-freight-by-awb-type/?awb_type=${encodeURIComponent(awbType)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.freights && data.freights.length > 0) {
+                        const rate = parseFloat(data.freights[0].rate);
+                        freightRateField.value = rate.toFixed(2);
+                        freightField.value = calculateFreight(rate, chargableWeight);
+                    } else if (data.error) {
+                        console.error(data.error);
+                        freightRateField.value = 'Error';
+                        freightField.value = 'Error';
+                    } else {
+                        console.error("No freights found for the selected AWB type.");
+                        freightRateField.value = 'N/A';
+                        freightField.value = 'N/A';
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching freights:", error);
+                    freightRateField.value = 'Error';
+                    freightField.value = 'Error';
+                });
+            } else {
+                freightRateField.value = 'N/A'; // Clear the field if no AWB Type is selected
+                freightField.value = 'N/A'; // Clear the freight field if no AWB Type is selected
+            }
+        }
+
+        // Event listeners to trigger the freight rate and freight calculation
+        awbTypeField.addEventListener('change', updateFreightAndRate);
+        chargableWeightField.addEventListener('input', updateFreightAndRate);
+    });
+</script>
+
+{% endblock %}

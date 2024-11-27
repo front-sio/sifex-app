@@ -1,0 +1,118 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% block title %}{{ payment_method|capfirst }} Sales Report{% endblock %}
+
+{% block page %}{{ payment_method|capfirst }} Sales Report{% endblock page %}
+{% block slogan %}{{ payment_method|capfirst }} Sales Report{% endblock slogan %}
+
+{% block style %}
+<style>
+    @media print {
+        /* Hide the entire page except for the card */
+        body * {
+            visibility: hidden;
+        }
+        .card, .card * {
+            visibility: visible;
+        }
+        .card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .btn, .no-print {
+            display: none;
+        }
+
+        .logo-print {
+            display: block !important;
+        }
+
+        /* Specific classes to hide title and URL */
+        .no-print-title, .no-print-url {
+            display: none;
+        }
+
+        /* Additional CSS to hide the default title and URL */
+        @page {
+            size: auto;
+            margin: 0; /* Remove the default margins */
+        }
+        @media print {
+            body {
+                margin: 0; /* Remove the body margin */
+            }
+            .card {
+                margin: 0; /* Remove the card margin */
+                box-shadow: none; /* Remove any shadow */
+            }
+        }
+    }
+
+    .logo-print {
+        display: none;
+    }
+</style>
+{% endblock style %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header row">
+        <div class="col-md-4 col-lg-4 col-sm-12">
+            <div class="logo-print" style="width: 120px;">
+                <img src="{% static 'home/assets/img/logo/loder.jpg' %}" alt="Logo">
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-4 col-sm-12">
+            <h1>{{ payment_method|capfirst }} Sales Report</h1>
+            <p>Date Range: {{ date_from }} to {{ date_to }}</p>
+        </div>
+        <div class="col-md-8 col-lg-8 col-sm-12">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Total Sales (TZS): {{ total_sales_tzs }}</h3>
+                </div>
+                <div class="col-6">
+                    <h3>Total Sales (USD): {{ total_sales_usd }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <button onclick="window.print()" class="btn btn-primary mb-3">Print Report</button>
+    </div>
+    <div class="card-body">
+        {% if error %}
+            <p>{{ error }}</p>
+        {% else %}
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Invoice ID</th>
+                        <th>Customer</th>
+                        <th>Total Amount (TZS)</th>
+                        <th>Total Amount (USD)</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice.id }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ invoice.total_amount_tzs }}</td>
+                        <td>{{ invoice.total_amount_usd }}</td>
+                        <td>{{ invoice.date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

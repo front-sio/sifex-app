@@ -1,0 +1,145 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Unpaid Invoices List{% endblock %}
+
+{% block page %}Unpaid Invoices List{% endblock %}
+{% block slogan %}List of Unpaid Invoices{% endblock slogan %} 
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+
+        .logo-print {
+            display: none;
+        }
+
+        @media print {
+            /* Hide the entire page except for the card */
+            body * {
+                visibility: hidden;
+            }
+            .card, .card * {
+                visibility: visible;
+            }
+            .card {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .btn, .no-print {
+                display: none;
+            }
+
+            .logo-print {
+                display: block !important;
+            }
+
+            /* Specific classes to hide title and URL */
+            .no-print-title, .no-print-url {
+                display: none;
+            }
+
+            /* Additional CSS to hide the default title and URL */
+            @page {
+                size: auto;
+                margin: 0; /* Remove the default margins */
+            }
+            @media print {
+                body {
+                    margin: 0; /* Remove the body margin */
+                }
+                .card {
+                    margin: 0; /* Remove the card margin */
+                    box-shadow: none; /* Remove any shadow */
+                }
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <header class="card-header">
+        <div class="logo-print" style="width: 120px;">
+            <img src="{% static 'home/assets/img/logo/loder.jpg' %}" alt="Logo">
+        </div>
+    </header>
+    
+    {% if invoices %}
+    <div class="card-content">
+        <div class="content table-responsive">
+            <button onclick="window.print()" class="btn btn-primary mb-3">Print Report</button>
+
+            <!-- Summary Section -->
+            <div class="mb-4">
+                <h4>Total Unpaid Invoices: {{ total_invoices }}</h4>
+                <h4>Total Amount (USD): {{ total_amount_usd }}</h4>
+                <h4>Total Amount (TZS): {{ total_amount_tzs }}</h4>
+            </div>
+
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>INVOICE</th>
+                        <th>TRACKING NUMBER</th>
+                        <th>ORIGIN</th>
+                        <th>CUSTOMER</th>
+                        <th>DATE</th>
+                        <th>DUE DATE</th>
+                        <th>AMOUNT IN USD</th>
+                        <th>AMOUNT IN TZS</th>
+                        <th>STATUS</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td><input class="checkbox" type="checkbox" value="{{ invoice.id }}" name="invoice_id" size="1" /></td>
+                        <td width="1%">#{{ invoice.id }}</td>
+                        <td width="9%">{{ invoice.awb.awb }}</td>
+                        <td width="9%">{{ invoice.origin }}</td>
+                        <td width="9%">{{ invoice.customer }}</td>
+                        <td>{{ invoice.date }}</td>
+                        <td>{{ invoice.due_date }}</td>
+                        <td width="1%">{{ invoice.total_amount_usd }}</td>
+                        <td>{{ invoice.total_amount_tzs }}</td>
+                        <td class="level-right">
+                            {% if invoice.status == 'paid' %}
+                            <a class="button is-small is-success" href="#">Paid</a>
+                            {% elif invoice.status == 'credited' %}
+                            <a class="button is-small is-primary" href="#">Credited</a>
+                            {% else %}
+                            <a class="button is-small is-warning" href="#">Not Paid</a>
+                            {% endif %}
+                        </td>
+                        <td width="1%"><a class="button is-small is-info" target="_blank" href="{% url 'invoice_pdf' invoice.id %}">Download</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card-body">
+        <h4 class="text-center">No unpaid invoices found for the selected date range.</h4>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block script %}
+{% endblock %}

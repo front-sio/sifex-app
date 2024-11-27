@@ -1,0 +1,376 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block style %}
+<style>
+    .carousel-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .search-parcel {
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .hero-pera img {
+        width: 100%;
+        height: auto;
+    }
+
+    @media (max-width: 768px) {
+        .search-parcel {
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hero-pera img {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .search-parcel {
+            top: 70%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hero-pera img {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block script %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('#trackParcelModal').modal('show');
+        });
+    </script>
+{% endblock script %}
+
+{% block content %}
+<!-- Carousel Section -->
+<br><br><br><br>
+<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {% for carousel in carousels %}
+            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+        {% endfor %}
+    </div>
+    <div class="carousel-inner">
+        {% for carousel in carousels %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <img src="{{ carousel.carousel_image.url }}" class="d-block w-100" alt="{{ carousel.title }}">
+            <div class="carousel-caption d-none d-md-block" style="background-color: #ff0000; padding: 10px;">
+                <!-- <h5 class="text-white">{{ carousel.title }}</h5> -->
+                <!-- <p>{{ carousel.description }}</p> -->
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- The rest of your content -->
+<!--? our info Start -->
+<div class="our-info-area pt-70 pb-40">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="single-info mb-30">
+                    <div class="info-icon">
+                        <span class="flaticon-support"></span>
+                    </div>
+                    <div class="info-caption">
+                        <p>Call Us Anytime</p>
+                        <p>Tanzania</p>
+                        <p>+255 688 930 963 </p>
+                        <p>China</p>
+                        <p>+86 19578215520 </p>
+                        <p>Dubai</p>
+                        <p>+971 50 572 7664 </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="single-info mb-30">
+                    <div class="info-icon">
+                        <span class="flaticon-clock"></span>
+                    </div>
+                    <div class="info-caption">
+                        <p>Sunday CLOSED</p>
+                        <span>Mon - Sat 8.00 - 17.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="single-info mb-30">
+                    <div class="info-icon">
+                        <span class="flaticon-place"></span>
+                    </div>
+                    <div class="info-caption">
+                        <p>Zakhem Plaza, First Floor. Opp Julius Nyerere International AirPort</p>
+                        <span>Dar es salaam, Tanzania</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- our info End -->
+<!--? Categories Area Start -->
+<div class="categories-area section-padding30">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Section Tittle -->
+                <div class="section-tittle text-center mb-80">
+                    <span>Our Services</span>
+                    <h2>What We Can Do For You</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            {% for service in services %}
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="single-cat text-center mb-50">
+                    <div class="cat-icon">
+                        <span class="{{service.icon}}"></span>
+                    </div>
+                    <div class="cat-cap">
+                        <h5><a href="{% url 'services' %}">{{service.title}}</a></h5>
+                        <p>{{service.description}}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- Categories Area End -->
+<!--? About Area Start -->
+<div class="about-low-area padding-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 col-md-12">
+                <div class="about-caption mb-50">
+                    <!-- Section Tittle -->
+                    <div class="section-tittle mb-35">
+                        <span>About Our Company</span>
+                        <h2></h2>
+                    </div>
+                    <p>Sifex is an International Shipping Company that offers high quality air transport services from Guangzhou China and Dubai to Dar es Salaam and
+                        Zanzibar in Tanzania. It is our responsibility to secure your package and ensure fast track delivery at your door step.
+                    </p>
+                    
+                    <a href="{% url 'about' %}" class="btn">More About Us</a>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-12">
+                <!-- about-img -->
+                <div class="about-img ">
+                    <div class="about-font-img">
+                        <img src="/static/home/assets/img/gallery/mwita.jpg" alt="">
+                    </div>
+                    <div class="about-back-img d-none d-lg-block">
+                        <img src="/static/home/assets/img/gallery/about1.png" alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- About Area End -->
+<!--? contact-form start -->
+<section class="contact-form-area section-bg  pt-115 pb-120 fix" data-background="/static/home/assets/img/hero/sifex_hero_plain.jpg">
+    <div class="container">
+        <div class="row justify-content-end">
+            <!-- Contact wrapper -->
+            <div class="col-xl-8 col-lg-9">
+                <div class="contact-form-wrapper">
+                    <!-- From tittle -->
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <!-- Section Tittle -->
+                            <div class="section-tittle mb-50">
+                                <span>Get a Quote</span>
+                                <h2>Request a Quote</h2>
+                                <p></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- form -->
+                    <form method="post" class="contact-form" id="quote-form" action="{% url 'request_quote' %}">
+                        {% csrf_token %}
+                        <div class="row ">
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-form">
+                                    <input type="text" name="name" required placeholder="Name" id="sendername">
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6">
+                                <div class="input-form">
+                                    <input type="text" name="email" required placeholder="Email" id="senderemail">
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="input-form">
+                                    <input type="text" name="phone" required id="phone" placeholder="Contact Number">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="select-items">
+                                    <select name="service" id="senderservice">
+                                        <option value="air transporsendert">air transport</option>
+                                        <option value="transport">transport service</option>
+                                        <option value="warehouse">warehouse service</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                           
+                            <!-- Radio Button -->
+                            <!-- <div class="col-lg-12">
+                                <div class="radio-wrapper mb-30 mt-15">
+                                    <label>Extra services:</label>
+                                    <div class="select-radio">
+                                        <div class="radio">
+                                            <input id="radio-1" name="radio" type="radio" checked="">
+                                            <label for="radio-1" class="radio-label">Freight</label>
+                                        </div>
+                                        <div class="radio">
+                                            <input id="radio-2" name="radio" type="radio">
+                                            <label for="radio-2" class="radio-label">Express Delivery</label>
+                                        </div>
+                                        <div class="radio">
+                                            <input id="radio-4" name="radio" type="radio">
+                                            <label for="radio-4" class="radio-label">Insurance</label>
+                                        </div>
+                                        <div class="radio">
+                                            <input id="radio-5" name="radio" type="radio">
+                                            <label for="radio-5" class="radio-label">Packaging</label>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </div> -->
+                            <!-- Button -->
+                            <div class="col-lg-12">
+                                <button name="submit" class="submit-btn" id="send-request-btn">Request a Quote</button>
+                            </div>
+                        </div>
+                    </form>	
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- contact-form end -->
+<!--Team Ara Start -->
+<div class="team-area section-padding30">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="cl-xl-7 col-lg-8 col-md-10">
+                <!-- Section Tittle -->
+                <div class="section-tittle text-center mb-70">
+                    <span>Our Team Mambers</span>
+                    <h2>What We Can Do For You</h2>
+                </div> 
+            </div>
+        </div>
+        <div class="row">
+            {% for team in teams %}
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="single-team mb-30 text-center">
+                    <div class="team-img">
+                        <img src="{{team.image.url}}" alt="">
+                        <div class="team-caption">
+                            <h3><a href="#">{{team.name}}</a></h3>
+                            <p>{{team.position}}</p>
+                            <!-- Blog Social -->
+                            <div class="team-social">
+                                <ul>
+                                    {% if team.social_media_link1 %}
+                                    <li><a target="_blank" href="{{team.social_media_link1}}"><i class="fab fa-facebook-f"></i></a></li>
+                                    {% endif %}
+                                    {% if team.social_media_link2 %}
+                                    <li><a target="_blank" href="{{team.social_media_link2}}"><i class="fab fa-twitter"></i></a></li>
+                                    {% endif %}
+                                    <!-- <li><a target="_blank" href="#"><i class="fas fa-globe"></i></a></li> -->
+                                    {% if team.social_media_link3 %}
+                                    <li><a target="_blank" href="{{team.social_media_link3}}"><i class="fab fa-instagram"></i></a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- Team Ara End -->
+
+
+<!--? Blog Area Start -->
+
+<div class="home-blog-area section-padding30">
+    <div class="container">
+        
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-tittle text-center mb-70">
+                    <span>Our Recent news</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            {% for blog in blogs %}
+            <div class="col-lg-4 col-md-6">
+                <div class="home-blog-single mb-30">
+                    <div class="blog-img-cap">
+                        <div class="blog-img">
+                            <img src="{{blog.photo.url}}" alt="">
+                        </div>
+                    </div>
+                    <div class="blog-caption">
+                        <div class="blog-date text-center">
+                            <span>{{blog.date_created}}</span>
+                            <p>{{blog.date_created}}</p>
+                        </div>
+                        <div class="blog-cap">
+                            <ul>
+                                <li><a href="#"><i class="ti-user"></i> {{blog.user.username}}</a></li>
+                                <li><a href="#"><i class="ti-comment-alt"></i></a></li>
+                            </ul>
+                            <h3><a href="{% url 'blog_detail' blog.id %}">{{blog.title}}</a></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- Blog Area End -->
+
+{% endblock content %}

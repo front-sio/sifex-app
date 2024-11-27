@@ -1,0 +1,116 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+<meta name="description" content="POS - Bootstrap Admin Template">
+<meta name="keywords" content="admin, estimates, bootstrap, business, corporate, creative, invoice, html5, responsive, Projects">
+<meta name="author" content="Dreamguys - Bootstrap Admin Template">
+<meta name="robots" content="noindex, nofollow">
+<title>Login - sifex</title>
+
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+
+<link rel="stylesheet" href="{% static 'system/assets/css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'system/assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+<link rel="stylesheet" href="{% static 'system/assets/plugins/fontawesome/css/all.min.css' %}">
+<link rel="stylesheet" href="{% static 'system/assets/css/style.css' %}">
+
+<style>
+    body {
+        background-image: url('{% static "images/15694157_5623406.jpg" %}');
+        background-repeat: no-repeat;
+        background-size: cover; 
+    }
+
+    .background-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 0, 0, 0.5); /* Red color with opacity */
+        z-index: 0;
+    }
+
+    .login-wrapper {
+        position: relative;
+        z-index: 1;
+    }
+
+    .card {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-white {
+        color: #fff;
+    }
+</style>
+</head>
+<body class="account-page">
+<div class="background-overlay"></div>
+
+<div class="main-wrapper">
+    <div class="account-content">
+        <div class="login-wrapper">
+            <div class="login-content">
+                <div class="login-userset">
+                    <div class="login-logo" style="background-color: #fff !important; border-radius: 10px;">
+                        <img src="{% static 'home/assets/img/logo/logo.png' %}" alt="img">
+                    </div>
+                    <div class="login-userheading">
+                        <h3 class="text-white">Sign In</h3>
+                        <h4 class="text-white">Please login to your account</h4>
+                        {% if messages %}
+                        {% for message in messages %}
+                        <h4 id="messages" class="text-white">{{message}}</h4>
+                        {% endfor %}    
+                        {% endif %}
+                    </div>
+                    <form action="{% url 'login' %}" method="post">
+                        {% csrf_token %}
+                        <div class="form-login">
+                            <label class="text-white">Username</label>
+                            <div class="form-addons">
+                                <input type="text" name="username" placeholder="Enter your username">
+                                <img src="{% static 'system/assets/img/icons/users1.svg' %}" alt="img">
+                            </div>
+                        </div>
+                        <div class="form-login">
+                            <label class="text-white">Password</label>
+                            <div class="pass-group">
+                                <input type="password" name="password" class="pass-input" placeholder="Enter your password" autocomplete="off">
+                                <span class="fas toggle-password fa-eye-slash"></span>
+                            </div>
+                        </div>
+                        <div class="form-login">
+                            <div class="alreadyuser">
+                                <!-- <h4><a href="forgetpassword.html" class="hover-a">Forgot Password?</a></h4> -->
+                            </div>
+                        </div>
+                        <div class="form-login">
+                            <button class="btn btn-primary btn-block text-white" type="submit">Sign In</button>
+                        </div>
+                        <div class="signinform text-center text-white">
+                            <h4 class="text-white">Don’t have an account? <a href="#" class="hover-a text-white">Sign Up</a></h4>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="login-img">
+                <!-- <img src="{% static 'inventory_ui/img/login.jpg' %}" alt="img"> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'system/assets/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'system/assets/js/feather.min.js' %}"></script>
+<script src="{% static 'system/assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'system/assets/js/script.js' %}"></script>
+</body>
+</html>

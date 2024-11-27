@@ -1,0 +1,101 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Location Search Result{% endblock %}
+
+{% block page %}Location Search Result{% endblock page %}
+{% block slogan %}Location Search Result{% endblock slogan %}
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            {% include 'system/partials/_messages.html' %}
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% if master_awb %}
+            <h4>AWB: {{ master_awb.awb }}</h4>
+            <form action="{% url 'save_location_info' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="awb_id" value="{{ master_awb.id }}">
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-6">
+                        <div class="form-group">
+                            <label for="rack">Rack</label>
+                            <input required type="text" name="rack" id="rack" class="form-control" placeholder="Enter Rack">
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-6">
+                        <div class="form-group">
+                            <label for="bay">Bay</label>
+                            <input required type="text" name="bay" id="bay" class="form-control" placeholder="Enter Bay">
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-6 col-6">
+                        <div class="form-group">
+                            <label for="pcs">Pcs</label>
+                            <input required type="text" name="pcs" id="pcs" class="form-control" placeholder="Enter Pcs">
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-sm-12 col-12">
+                        <button type="submit" class="btn btn-primary btn-block">Add New Location</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+
+            {% if locations %}
+                <h4>Existing Locations for AWB: {{ master_awb.awb }}</h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Rack</th>
+                            <th>Bay</th>
+                            <th>Pcs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for location in locations %}
+                            <tr>
+                                <td>{{ location.rack }}</td>
+                                <td>{{ location.bay }}</td>
+                                <td>{{ location.pcs }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No locations found for this AWB.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners or any other initialization code here
+    });
+</script>
+{% endblock %}

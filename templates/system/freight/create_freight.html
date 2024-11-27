@@ -1,0 +1,54 @@
+{% extends 'system/app/index.html' %}
+{% load widget_tweaks %}
+{% block title %}Create Freight{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Create Freight</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'create_freight' %}" id="freightForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="freight_rete">Freight Rate</label>
+                            {% render_field form.freight_rete class="form-control" placeholder="Enter freight rate" %}
+                        </div>
+                        <div class="form-group">
+                            <label for="awb_type">AWB Type</label>
+                            {% render_field form.awb_type class="form-control" %}
+                        </div>
+                        <div class="form-group text-right">
+                            <button type="submit" id="submitBtn" class="btn btn-primary">
+                                <span id="btnText">Create Freight</span>
+                                <span id="btnLoader" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.getElementById('freightForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        
+        btnText.classList.add('d-none');
+        btnLoader.classList.remove('d-none');
+        submitBtn.disabled = true;
+        
+        this.submit();
+    });
+</script>
+{% endblock %}

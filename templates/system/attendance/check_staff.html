@@ -1,0 +1,152 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% block style %}
+    <style>
+        .hide {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+    </style>
+{% endblock %}
+{% block title %}my Dashboard{% endblock %}
+{% block content %}
+
+
+
+
+<div class="row">
+<div class="col-lg-12 col-sm-12 col-12 d-flex">
+<div class="card flex-fill">
+
+<div class="card-body">
+    
+    <div class="row">
+        <div id="qr-reader-results" style="display: flex; justify-content: center;"></div>
+        <div style="display: flex; justify-content: center;" id="qr-box">
+            <div id="my-qr-reader" style="width: 500px;"></div>
+        </div>
+    </div>
+   
+</div>
+</div>
+</div>
+
+</div>
+
+{% endblock %}
+{% block script %}
+<!-- CHECK IF DOM IS READY -->
+<script>
+    function domReady(fn){
+        if (document.readyState === 'complete' || document.readyState === 'interactive'){
+            setTimeout(fn,1)
+        }else {
+            document.addEventListener('DOMContentLoaded', fn)
+        }
+    }
+
+    domReady(function(){
+        var myqr = document.getElementById('my-qr-reader');
+        var qrBox = document.getElementById('qr-box');
+        var resultContainer = document.getElementById('qr-reader-results');
+        var lastResult, countResults = 0;
+
+        // IF FOUND QR CODE
+        function onScanSuccess(decodedText, decodedResult){
+            if (decodedText !== lastResult){
+                ++countResults;
+                lastResult = decodedText;
+                console.log(`Scan result ${decodedText}`, decodedResult);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/sifex/check-staff-id/',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'staffcode': decodedText,
+                    },
+                    success: function(result){
+                        console.log(result)
+
+                        $.ajax({
+                    type: 'POST',
+                    url: '/sifex/mark-attendance-in/',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'staffcode': result.data.code_number,
+                    },
+                    success: function(res){
+                        console.log(res)
+                        qrBox.style.display = 'none'
+                        var data = res.data
+                        if (data === 'Sorry already marked out'){
+                            resultContainer.innerHTML = `
+                            <div class="card" style="width: 18rem;">
+                                <div class="card-title" style="display: flex; justify-content: center;">
+                                <h2 class="card-text">Ooops!</h2>
+                            </div>
+                            <div class="card-body" style="display: flex; justify-content: center;">
+                                <p class="card-text">${data}</p>
+                            </div>
+                            <div class="card-footer" style="display: flex; justify-content: center;">
+                                <a href="/sifex/check-staff" class="btn btn-primary">Check another</a>
+                            </div>
+                            </div>
+                        `
+                        }
+                        else if (data === 'signed out successfully'){
+                            resultContainer.innerHTML = `
+                            <div class="card" style="width: 18rem;">
+                            <div class="card-title" style="display: flex; justify-content: center;">
+                                <h3 class="card-text">Congratulations!</h3>
+                            </div>
+                            <div class="card-body" style="display: flex; flex-direction: column; text-align: center; justify-content: center;">
+                                <p class="card-text">${data}</p>
+                            </div>
+                            <div class="card-footer" style="display: flex; justify-content: center;">
+                                <a href="/sifex/check-staff" class="btn btn-primary">Check another</a>
+                            </div>
+                            </div>
+                        `
+                        } else {
+                            resultContainer.innerHTML = `
+                            <div class="card" style="width: 18rem;">
+                            <div class="card-title" style="display: flex; justify-content: center;">
+                                <h2 class="card-text">Congratulations!</h2>
+                            </div>
+                            <div class="card-body" style="display: flex; flex-direction: column; text-align: center; justify-content: center;">
+                                <p class="card-text">${data.staff}</p>
+                                <p class="card-text">Date: ${data.date}</p>
+                                <p class="card-text">In Time: ${data.in_time}</p>
+                            </div>
+                            <div class="card-footer" style="display: flex; justify-content: center;">
+                                <a href="/sifex/check-staff" class="btn btn-primary">Check another</a>
+                            </div>
+                            </div>
+                            `
+                        }
+                    },
+                    error: function(err){console.log(err)}
+                });
+                    },
+                    error: function(err){console.log(err)}
+                });
+            }
+        }
+
+         // RENDER QR CAMERA
+        var htmlscanner = new Html5QrcodeScanner(
+            'my-qr-reader', {fps: 10, qrbox: 250}
+        )
+
+        htmlscanner.render(onScanSuccess)
+    })
+
+   
+</script>
+{% endblock %}

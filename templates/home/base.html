@@ -1,0 +1,403 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Sifex | {% block title %}{% endblock title %}</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="{% static 'system/assets/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/slicknav.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/flaticon.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/animate.min.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/magnific-popup.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/fontawesome-all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/themify-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/slick.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/nice-select.css' %}">
+    <link rel="stylesheet" href="{% static 'home/assets/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'system/assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'system/assets/css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'system/assets/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'system/assets/plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'system/assets/plugins/fontawesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'system/assets/css/style.css' %}">
+
+    <style>
+        main {
+            overflow-x: hidden;
+        }
+
+        .slider-height {
+            background-image: url('{% static "home/assets/img/hero/sifex_hero_plain.jpg" %}');
+            min-height: 100vw;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+        }
+
+        .bg-img-1 {
+            background-image: url('{% static "home/assets/img/slider/slider-img-1.jpg" %}');
+        }
+
+        .bg-img-2 {
+            background-image: url('{% static "home/assets/img/background-img/bg-img-2.jpg" %}');
+        }
+
+        .cta-bg-1 {
+            background-image: url('{% static "home/assets/img/background-img/bg-img-3.jpg" %}');
+        }
+
+        @media only screen and (min-width: 992px) and (max-width: 1199px) {
+            .slider-height {
+                min-height: 700px;
+            }
+        }
+
+        @media only screen and (min-width: 768px) and (max-width: 991px) {
+            .slider-height {
+                min-height: 500px;
+            }
+        }
+
+        @media only screen and (min-width: 576px) and (max-width: 767px) {
+            .slider-height {
+                min-height: 500px;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .slider-height {
+                min-height: 500px;
+            }
+        }
+
+        .slider-height2 {
+            background-image: url("{% static 'home/assets/img/hero/sifex_hero_plain.jpg' %}");
+            min-height: 460px;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        @media only screen and (min-width: 768px) and (max-width: 991px) {
+            .slider-height2 {
+                min-height: 350px;
+            }
+        }
+
+        @media only screen and (min-width: 576px) and (max-width: 767px) {
+            .slider-height2 {
+                min-height: 260px;
+            }
+        }
+
+        .header-bottom {
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            background-color: red !important;
+            transition: all 0.3s ease;
+            min-width: 100%;
+        }
+
+        .header-bottom.header-sticky {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-menu ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-menu ul li {
+            position: relative;
+            margin-right: 30px;
+        }
+
+        .main-menu ul li a {
+            text-decoration: none;
+            color: #fff !important;
+            font-weight: 500;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .main-menu ul li a:hover {
+            color: #ffa500;
+        }
+
+        .main-menu ul li a::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 6px;
+            bottom: -2px;
+            left: 50%;
+            background-color: #1a068d;
+            transition: all 0.3s ease;
+        }
+
+        .main-menu ul li a:hover::before {
+            width: 100%;
+            left: 0;
+        }
+
+        .preloader {
+            transition: opacity 0.5s ease;
+        }
+
+        .preloader.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .logo {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .mobile_menu {
+            background-color: #ff0000 !important;
+        }
+
+        .slicknav_menu .slicknav_menutxt {
+            color: #ff0000 !important;
+        }
+
+        .slicknav_nav a {
+            color: #fff !important;
+        }
+    </style>
+    {% block style %}{% endblock %}
+    <script src="{% static 'home/assets/js/vendor/jquery-1.12.4.min.js' %}"></script>
+    <script src="{% static 'sifex/js/main.js' %}" defer></script>
+    <script src="{% static 'home/assets/js/main.js' %}" defer></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var preloader = document.getElementById('preloader-active');
+            preloader.classList.add('hide');
+
+            window.addEventListener('scroll', function() {
+                var header = document.querySelector('.header-bottom');
+                if (window.scrollY > 0) {
+                    header.classList.add('header-sticky');
+                } else {
+                    header.classList.remove('header-sticky');
+                }
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+    {% block script %}{% endblock script %}
+</head>
+<body>
+<!-- Preloader Start -->
+<div id="preloader-active">
+    <div class="preloader d-flex align-items-center justify-content-center">
+        <div class="preloader-inner position-relative">
+            <div class="preloader-circle"></div>
+            <div class="preloader-img pere-text">
+                <img src="{% static 'home/assets/img/logo/loder.jpg' %}" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Preloader End -->
+<header>
+    <div class="header-area">
+        <div class="main-header">
+            <div class="header-bottom header-sticky">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-xl-2 col-lg-2">
+                            <div class="logo">
+                                <a href="{% url 'home' %}"><img src="{% static 'home/assets/img/logo/logo.png' %}" alt=""></a>
+                            </div>
+                        </div>
+                        <div class="col-xl-10 col-lg-10">
+                            <div class="menu-wrapper d-flex align-items-center justify-content-end">
+                                <div class="main-menu d-none d-lg-block">
+                                    <nav>
+                                        <ul id="navigation">
+                                            <li><a href="{% url 'home' %}">Home</a></li>
+                                            <li><a href="{% url 'about' %}">About</a></li>
+                                            <li><a href="{% url 'services' %}">Services</a></li>
+                                            <li><a href="{% url 'blog' %}">Blog</a></li>
+                                            <li><a href="{% url 'contact' %}">Contact</a></li>
+                                            <li><a href="#" data-toggle="modal" data-target="#trackParcelModal">Track Parcel</a></li>
+                                            <li><a href="{% url 'console' %}">Login</a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                                <div class="mobile_menu d-block d-lg-none">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>
+    <div class="footer-area footer-bg">
+        <div class="container">
+            <div class="footer-top footer-padding">
+                <div class="footer-heading">
+                    <div class="row justify-content-between">
+                        <div class="col-xl-6 col-lg-8 col-md-8">
+                            <div class="wantToWork-caption wantToWork-caption2">
+                                <h4 class="text-danger">Let ship from Dubai UAE/China to Dar es salaam and Zanzibar</h4>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4">
+                            <span class="contact text-danger f-right" style="font-size: 1.5rem;">+255 678 922 008</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-between">
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6">
+                        <div class="single-footer-caption mb-50">
+                            <div class="footer-tittle">
+                                <h4>COMPANY</h4>
+                                <ul>
+                                    <li><a href="{% url 'about' %}">About Us</a></li>
+                                    <li><a href="{% url 'about' %}">Company</a></li>
+                                    <li><a href="{% url 'blog' %}"> Press & Blog</a></li>
+                                    <li><a href="#"> Privacy Policy</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-3 col-md-4 col-sm-6">
+                        <div class="single-footer-caption mb-50">
+                            <div class="footer-tittle">
+                                <h4>Open hour</h4>
+                                <ul>
+                                    <li><a href="#">Monday-Friday 08:00 am-11:00 pm</a></li>
+                                    <li><a href="#"> Saturday 08:00 am - 01:00 pm</a></li>
+                                    <li><a href="#"> Sunday CLOSED</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                        <div class="single-footer-caption mb-50">
+                            <div class="footer-tittle">
+                                <h4>RESOURCES</h4>
+                                <ul>
+                                    <li><a href="{% url 'home' %}">Home</a></li>
+                                    <li><a href="{% url 'services' %}">Air transport</a></li>
+                                    <li><a href="{% url 'services' %}">Transport</a></li>
+                                    <li><a href="{% url 'services' %}">Warehouse</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 col-md-5 col-sm-6">
+                        <div class="single-footer-caption mb-50">
+                            <div class="footer-logo">
+                                <a href="{% url 'home' %}"><img src="{% static 'home/assets/img/logo/logo2_footer.png' %}" alt=""></a>
+                            </div>
+                            <div class="footer-tittle">
+                                <div class="footer-pera">
+                                    <h4>Our mission</h4>
+                                    <p class="info1 text-dangers">Our mission is to establish a standard shipping and delivery service company that will make available a wide range of services and products as it relates to the service offering globally.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="footer-social">
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                                <a href="#"><i class="fas fa-globe"></i></a>
+                                <a target="_blank" href="https://www.instagram.com/sifex_aircargo"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="row d-flex align-items-center">
+                    <div class="col-lg-12">
+                        <div class="footer-copy-right text-center">
+                            <p>&copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | Sifex Aircargo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<div id="back-top">
+    <a class="text-white" title="Go to Top" href="#">Top <i class="fas fa-level-up"></i></a>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="trackParcelModal" tabindex="-1" role="dialog" aria-labelledby="trackParcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trackParcelModalLabel">Track Your Parcel</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card-body">
+                    <form action="{% url 'courier' %}" class="search-box" method="post">
+                        {% csrf_token %}
+                        <div class="input-form form-group">
+                            <input type="text" class="form-control" required name="tracking_key" placeholder="Your Tracking ID">
+                        </div>
+                        <div class="search-form form-group">
+                            <button type="submit" class="btn btn-danger btn-outline">Track & Trace</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'home/assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
+<script src="{% static 'system/assets/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'home/assets/js/popper.min.js' %}"></script>
+<script src="{% static 'home/assets/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.slicknav.min.js' %}"></script>
+<script src="{% static 'home/assets/js/owl.carousel.min.js' %}"></script>
+<script src="{% static 'home/assets/js/slick.min.js' %}"></script>
+<script src="{% static 'home/assets/js/wow.min.js' %}"></script>
+<script src="{% static 'home/assets/js/animated.headline.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.magnific-popup.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.nice-select.min.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.sticky.js' %}"></script>
+<script src="{% static 'home/assets/js/contact.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.form.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.validate.min.js' %}"></script>
+<script src="{% static 'home/assets/js/mail-script.js' %}"></script>
+<script src="{% static 'home/assets/js/jquery.ajaxchimp.min.js' %}"></script>
+<script src="{% static 'home/assets/js/plugins.js' %}"></script>
+<script src="{% static 'home/assets/js/main.js' %}"></script>
+</body>
+</html>
+

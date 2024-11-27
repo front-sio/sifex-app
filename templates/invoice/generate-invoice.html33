@@ -1,0 +1,70 @@
+{% extends 'system/app/index.html' %}
+{% block page %} invoice create {% endblock page %}
+{% block title %}invoice create{% endblock %}
+{% load static %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+    <div class="table-top">
+    <div class="search-set">
+    <div class="search-input">
+    <a class="btn btn-searchset"><img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img"></a>
+    </div>
+    </div>
+    <div class="wordset">'
+        <div class="search-path">
+            <a href="{% url 'accept_delivered_console' %}" class="btn btn-filter" id="">see all</a>
+        </div>
+    </div>
+    </div>
+    
+
+    
+    <div class="table-responsive">
+        {% include 'system/partials/_messages.html' %}
+    <table class="table  datanew">
+    <thead>
+    <tr>
+    <th>
+    <label class="checkboxs">
+    <input type="checkbox" id="select-all">
+    <span class="checkmarks"></span>
+    </label>
+    </th>
+    <th>Customer</th>
+    <th>Service/Product</th>
+    <th>Exchange Rate </th>
+    <th>QTY</th>
+    <th>Weight</th>
+    <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for pc in pcs %}
+    <tr>
+    <td>
+    <label class="checkboxs">
+    <input type="checkbox" name="awb_id[]" value="{{pc.id}}" id="underclearance_status" class="underclearance_status">
+    <span class="checkmarks"></span>
+    </label>
+    </td>
+    <td class="productimgname">
+        <a href="{% url 'parcel_view' pc.id %}">{{pc.receiver_name}}</a>
+    </td>
+    <td>{{pc.awb}}</td>
+    {% for ex_rate in exchange_rate %}
+    <td>{{ex_rate.exchange_rate}}</td>
+    {% endfor %}
+    <td>{{pc.awb_pcs}}</td>
+    <td>{{pc.awb_kg}}</td>                                                                                                                                                                                                                                                                                                                
+    <td class="productimgname">
+        <a class="btn btn-success" href="{% url 'invoice-create' pc.id %}">invoice</a>
+    </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+    </div>
+</div>
+{% endblock content %}

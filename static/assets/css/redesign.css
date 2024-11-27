@@ -1,0 +1,130 @@
+/* @media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .slider-height {
+        min-height: 700px;
+    }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .slider-height {
+        min-height: 500px;
+    }
+}
+
+@media only screen and (min-width: 576px) and (max-width: 767px) {
+    .slider-height {
+        min-height: 500px;
+    }
+}
+
+@media (max-width: 575px) {
+    .slider-height {
+        min-height: 500px;
+    }
+}
+
+.slider-height2 {
+    background-image: url("{% static 'home/assets/img/hero/sifex_hero_plain.jpg' %}");
+    min-height: 460px;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .slider-height2 {
+        min-height: 350px;
+    }
+}
+
+@media only screen and (min-width: 576px) and (max-width: 767px) {
+    .slider-height2 {
+        min-height: 260px;
+    }
+}
+
+.header-bottom {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #4e2a84;
+    transition: all 0.3s ease;
+    padding: 10px 0;
+}
+
+.header-bottom.header-sticky {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-menu ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.main-menu ul li {
+    position: relative;
+    margin-right: 30px;
+}
+
+.main-menu ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.main-menu ul li a:hover {
+    color: #ffa500;
+}
+
+.main-menu ul li a::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 50%;
+    background-color: #ffa500;
+    transition: all 0.3s ease;
+}
+
+.main-menu ul li a:hover::before {
+    width: 100%;
+    left: 0;
+}
+
+.preloader {
+    transition: opacity 0.5s ease;
+}
+
+.preloader.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+@media (max-width: 991px) {
+    .header-bottom {
+        background-color: red;
+    }
+
+    .main-menu ul li a {
+        color: white;
+    }
+
+    .slicknav_menu {
+        background-color: red;
+    }
+
+    .slicknav_btn {
+        color: white;
+    }
+
+    .slicknav_nav {
+        background-color: red;
+    }
+
+    .slicknav_nav a {
+        color: white;
+    }
+} */

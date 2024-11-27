@@ -1,0 +1,241 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Released awb{% endblock %}
+
+{% block page %}Released awb{% endblock page %}
+{% block slogan %}List of Released awb{% endblock slogan %}
+
+{% block style %}
+    <style>
+        .hide-accept-form {
+            display: none;
+        }
+        .hide-response-form {
+            display: none;
+        }
+        .hide-add-form {
+            display: none;
+        }
+        /* Loader Styles */
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            display: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+    <div class="page-btn">
+        {% if request.user.acceptance %}
+        <a href="{% url 'accept_form_view' %}" class="btn btn-added"><img src="{% static 'system/assets/img/icons/plus.svg' %}" alt="img" class="me-1">New AWB</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            <div class="search-set">
+                <div class="search-path">
+                    <a class="btn btn-filter" id="filter_search">
+                        <img src="{% static 'system/assets/img/icons/filter.svg' %}" alt="img">
+                        <span><img src="{% static 'system/assets/img/icons/closes.svg' %}" alt="img"></span>
+                    </a>
+                </div>
+                <div class="search-input">
+                    <a class="btn btn-searchset"><img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img"></a>
+                </div>
+                {% include 'system/partials/_messages.html' %}
+            </div>
+            <div class="wordset">
+                <ul>
+                    <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{% static 'system/assets/img/icons/pdf.svg' %}" alt="img"></a></li>
+                    <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{% static 'system/assets/img/icons/excel.svg' %}" alt="img"></a></li>
+                    <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img"></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mb-0" id="filter_inputs">
+            <div class="card-body pb-0">
+                <div class="row">
+                    <div class="col-md-12 col-lg-12 col-sm-12 d-flex justify-content-between">
+                        <div class="form-group">
+                            <select name="status" id="id_status" class="form-control">
+                                <option value="billing" class="form-control">billing</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="id_date" name="date" placeholder="Date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="time" name="time" id="id_time" placeholder="Time" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input name="note" id="id_note" class="form-control" placeholder="Note">
+                        </div>
+                        <div class="form-group">
+                            <select name="terminal" id="id_terminal" class="form-control">
+                                <option value="CAN - Guanzhou">CAN - Guanzhou</option>
+                                <option value="HKG - HongKong">HKG - HongKong</option>
+                                <option value="DAR - Dar es salaam">DAR - Dar es salaam</option>
+                                <!-- Add other terminal options -->
+                            </select>
+                        </div>
+                        <div class="update-btn ml-3">
+                            <button type="submit" id="delivered_btn" class="btn btn-danger add_loaded_status">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="loader"></div>
+
+        <div class="table-responsive">
+            <table class="table datanew">
+                <thead>
+                    <tr>
+                        <th><label class="checkboxs"><input type="checkbox" id="select-all"><span class="checkmarks"></span></label></th>
+                        <th>RECEIVER NAME</th>
+                        <th>AWB</th>
+                        <th>Order Number</th>
+                        <th>AWB PCS</th>
+                        <th>AWB KG</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pc in pcs %}
+                    <tr>
+                        <td><label class="checkboxs"><input type="checkbox" name="awb_id[]" value="{{pc.id}}" id="delivered_status" class="delivered_status"><span class="checkmarks"></span></label></td>
+                        <td class="productimgname"><a href="{% url 'parcel_view' pc.id %}">{{pc.receiver_name}}</a></td>
+                        <td>{{pc.awb}}</td>
+                        <td>{{pc.order_number}}</td>
+                        <td>{{pc.awb_pcs}}</td>
+                        <td>{{pc.awb_kg}}</td>
+                        <td>
+                            <a class="me-3" href="{% url 'parcel_view' pc.id %}"><img src="{% static 'system/assets/img/icons/edit.svg' %}" alt="img"></a>
+                            <a class="confirm-text" href="{% url 'delete-awb' pc.id %}"><img src="{% static 'system/assets/img/icons/delete.svg' %}" alt="img"></a>
+                            <a href="{% url 'print_label' pc.id %}" target="_blank" data-bs-toggle="tooltip" title="print"><img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img"></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Internet Connection Modal -->
+<div class="modal fade" id="internetModal" tabindex="-1" aria-labelledby="internetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="internetModalLabel">No Internet Connection</h5>
+            </div>
+            <div class="modal-body">
+                You have no internet or a slow connection. Please try again later or check your connection.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<!-- Include Flatpickr CSS and JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#id_date", {
+            dateFormat: "Y-m-d",
+            allowInput: true
+        });
+        flatpickr("#id_time", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            allowInput: true
+        });
+    });
+
+    // Check for internet connectivity
+    function checkInternetConnection() {
+        return window.navigator.onLine;
+    }
+
+    $(document).ready(function() {
+        $('#delivered_btn').click(function() {
+            if (!checkInternetConnection()) {
+                // Show the modal for no internet connection
+                $('#internetModal').modal('show');
+                return;
+            }
+
+            var id = []
+            $('#delivered_status:checked').each(function(i) {
+                id[i] = $(this).val();
+            });
+
+            if (id.length === 0) {
+                alert('Please select an item');
+            } else {
+                console.log(id);
+                $('#loader').show(); // Show loader
+                $('#delivered_btn').prop('disabled', true); // Disable the save button
+                $.ajax({
+                    type: 'POST',
+                    url: '/sifex/payment/',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        id,
+                        'status': $('#id_status').val(),
+                        'date': $('#id_date').val(),
+                        'time': $('#id_time').val(),
+                        'note': $('#id_note').val(),
+                        'terminal': $('#id_terminal').val(),
+                    },
+                    success: function(res) {
+                        $('#loader').hide(); // Hide loader
+                        $('#delivered_btn').prop('disabled', false); // Enable the save button
+                        window.location = '/sifex/accept_underclearance_console/';
+                    },
+                    error: function(err) {
+                        console.log(err);
+                        $('#loader').hide(); // Hide loader
+                        $('#delivered_btn').prop('disabled', false); // Enable the save button
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

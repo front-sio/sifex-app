@@ -13,6 +13,7 @@ from pathlib import Path
 import os
 import environ
 import dj_database_url
+from urllib.parse import urlparse
 
 # Initialize environment variables
 env = environ.Env()

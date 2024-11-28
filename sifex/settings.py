@@ -32,7 +32,7 @@ DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
-CSRF_TRUSTED_ORIGINS = ["https://sifex.onrender.com", "http://127.0.0.1"]
+CSRF_TRUSTED_ORIGINS = ["https://sifex.onrender.com", "https://sifex.co.tz", "http://127.0.0.1"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -93,11 +93,29 @@ WSGI_APPLICATION = 'sifex.wsgi.application'
 # }
 
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=env('DATABASE_URL'),
+#         conn_max_age=600
+#     )
+# }
+
+# Use PostgreSQL database
+DATABASE_URL = "postgresql://postgres:anWTLHLryNYAsoexOMsVeOznaBftiYIB@junction.proxy.rlwy.net:32934/railway"
+
+# # Parse the database URL and configure DATABASES setting
+url = urlparse(DATABASE_URL)
+
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=env('DATABASE_URL'),
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': url.path[1:],  # Extract the DB name from the URL path
+        'USER': url.username,
+        'PASSWORD': url.password,
+        'HOST': url.hostname,
+        'PORT': url.port,
+    }
 }
 
 # Password validation

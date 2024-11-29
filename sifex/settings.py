@@ -208,3 +208,8 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # Message storage configuration
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
+
+
+
+SECURE_SSL_REDIRECT = True
+SECURE_HOSTNAME = "sifex.co.tz"

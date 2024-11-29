@@ -55,6 +55,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # 'core.middleware.UnderConstructionMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'sifex.redirect_to_www.RedirectToWWWMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

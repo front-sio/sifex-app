@@ -9,6 +9,10 @@ class RedirectToWWWMiddleware:
 
     def __call__(self, request):
         host = request.get_host()
+
+        # Redirect only if the hostname is sifex.co.tz
         if host == "sifex.co.tz":
             return HttpResponsePermanentRedirect(f"https://www.sifex.co.tz{request.get_full_path()}")
+
+        # Otherwise, continue processing the request
         return self.get_response(request)

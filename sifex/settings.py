@@ -212,5 +212,5 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 
 
-SECURE_SSL_REDIRECT = True
-SECURE_HOSTNAME = "sifex.co.tz"
+SECURE_SSL_REDIRECT = False
+

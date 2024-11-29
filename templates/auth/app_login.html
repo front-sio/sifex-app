@@ -8,7 +8,7 @@
 <meta name="keywords" content="admin, estimates, bootstrap, business, corporate, creative, invoice, html5, responsive, Projects">
 <meta name="author" content="Dreamguys - Bootstrap Admin Template">
 <meta name="robots" content="noindex, nofollow">
-<title>Login - sifex</title>
+<title>Login - sifongo</title>
 
 <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
 
@@ -49,6 +49,37 @@
     .text-white {
         color: #fff;
     }
+
+    .login-wrapper {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .login-userset {
+        background-color: #fff;
+        padding: 22px;
+        padding-top: 0;
+        border-radius: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    form {
+        width: 70%;
+    }
+    label {
+        color: #000 !important;
+    }
+
+    .login-logo img{
+        width: 550px !important;
+        height: 180px;
+    }
 </style>
 </head>
 <body class="account-page">
@@ -60,28 +91,29 @@
             <div class="login-content">
                 <div class="login-userset">
                     <div class="login-logo" style="background-color: #fff !important; border-radius: 10px;">
-                        <img src="{% static 'home/assets/img/logo/logo.png' %}" alt="img">
+                        <img src="{% static 'system/assets/img/sifex/logo.png' %}" alt="img">
                     </div>
-                    <div class="login-userheading">
-                        <h3 class="text-white">Sign In</h3>
-                        <h4 class="text-white">Please login to your account</h4>
-                        {% if messages %}
-                        {% for message in messages %}
-                        <h4 id="messages" class="text-white">{{message}}</h4>
-                        {% endfor %}    
-                        {% endif %}
-                    </div>
+                   
                     <form action="{% url 'login' %}" method="post">
+                        <div class="login-userheading">
+                            <h3 class="text-dark">Sign In</h3>
+                            <h4 class="text-dark">Please login to your account</h4>
+                            {% if messages %}
+                            {% for message in messages %}
+                            <h4 id="messages" class="text-red">{{message}}</h4>
+                            {% endfor %}    
+                            {% endif %}
+                        </div>
                         {% csrf_token %}
                         <div class="form-login">
-                            <label class="text-white">Username</label>
+                            <label class="text-dark">Username</label>
                             <div class="form-addons">
                                 <input type="text" name="username" placeholder="Enter your username">
                                 <img src="{% static 'system/assets/img/icons/users1.svg' %}" alt="img">
                             </div>
                         </div>
                         <div class="form-login">
-                            <label class="text-white">Password</label>
+                            <label class="text-dark">Password</label>
                             <div class="pass-group">
                                 <input type="password" name="password" class="pass-input" placeholder="Enter your password" autocomplete="off">
                                 <span class="fas toggle-password fa-eye-slash"></span>
@@ -93,11 +125,11 @@
                             </div>
                         </div>
                         <div class="form-login">
-                            <button class="btn btn-primary btn-block text-white" type="submit">Sign In</button>
+                            <button class="btn btn-primary btn-block text-white" type="submit" style="color: #fff; background-color: #ff0000 !important; outline: none; border: none; padding: 12px; width: 100%; border-radius: 25px;">Sign In</button>
                         </div>
-                        <div class="signinform text-center text-white">
-                            <h4 class="text-white">Don’t have an account? <a href="#" class="hover-a text-white">Sign Up</a></h4>
-                        </div>
+                        <!-- <div class="signinform text-center text-dark">
+                            <h4 class="text-dark">Don’t have an account? <a href="#" class="hover-a text-dark">Sign Up</a></h4>
+                        </div> -->
                     </form>
                 </div>
             </div>

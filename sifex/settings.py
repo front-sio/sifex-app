@@ -33,8 +33,8 @@ DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
-# CSRF_TRUSTED_ORIGINS = ["https://sifex.up.railway.app", "https://sifex.co.tz", "https://www.sifex.co.tz", "http://127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = env.list('TRUSTED_ORIGINS', default=[])
+CSRF_TRUSTED_ORIGINS = ["https://sifex.up.railway.app", "https://sifex.co.tz", "https://www.sifex.co.tz", "http://127.0.0.1"]
+# CSRF_TRUSTED_ORIGINS = env.list('TRUSTED_ORIGINS', default=[])
 
 # Application definition
 INSTALLED_APPS = [

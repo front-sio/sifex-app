@@ -85,7 +85,7 @@
   
   const getSlaveAwbChartData = () => {
     fetch('/sifex/total_month_master_awb_kg/').then(res=>res.json()).then((results)=>{
-      console.log('results', results)
+      // console.log('results', results)
   
       const awb_type_data = results.awb_type_data
   
@@ -102,7 +102,7 @@
 
   const getArrivalAwbChartData = () => {
     fetch('/sifex/total_month_master_awb_kg/').then(res=>res.json()).then((results)=>{
-      console.log('results', results)
+      // console.log('results', results)
   
       const awb_type_data = results.awb_type_data
   

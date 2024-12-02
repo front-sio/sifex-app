@@ -354,26 +354,44 @@
 
 <!-- Modal -->
 <div class="modal fade" id="trackParcelModal" tabindex="-1" role="dialog" aria-labelledby="trackParcelModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
+            <!-- Modal Header -->
             <div class="modal-header">
                 <h5 class="modal-title" id="trackParcelModalLabel">Track Your Parcel</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+            <!-- Modal Body -->
             <div class="modal-body">
                 <div class="card-body">
-                    <form action="{% url 'courier' %}" class="search-box" method="post">
+                    <!-- Form -->
+                    <form action="{% url 'courier' %}" method="post" class="search-box">
                         {% csrf_token %}
-                        <div class="input-form form-group">
-                            <input type="text" class="form-control" required name="tracking_key" placeholder="Your Tracking ID">
+                        <!-- Tracking ID Input -->
+                        <div class="form-group">
+                            <label for="trackingKey">Enter Your Tracking ID:</label>
+                            <input 
+                                type="text" 
+                                id="trackingKey" 
+                                name="tracking_key" 
+                                class="form-control" 
+                                placeholder="Your Tracking ID" 
+                                required 
+                                aria-label="Tracking ID"
+                            >
                         </div>
-                        <div class="search-form form-group">
+                        <!-- Submit Button -->
+                        <div class="form-group text-center">
                             <button type="submit" class="btn btn-danger btn-outline">Track & Trace</button>
                         </div>
                     </form>
                 </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

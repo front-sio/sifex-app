@@ -407,6 +407,7 @@ def new_staff(request):
         wharehouse = request.POST.get('wharehouse')
         management = request.POST.get('management')
         importer = request.POST.get('importer')
+        report = request.POST.get('report')
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
 

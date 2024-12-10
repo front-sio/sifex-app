@@ -420,6 +420,7 @@ def new_staff(request):
         importer = importer == "on"
         wharehouse = wharehouse == "on"
         management = management == "on"
+        report = report == "on"
 
         if password1 == password2:
             user = User.objects.create_user(

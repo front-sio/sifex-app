@@ -32,6 +32,9 @@ from .models import Invoice, LineItem, Customer, Attendance, Staff
 import pdfkit
 
 
+
+
+
 # for printing
 import os
 from django.conf import settings
@@ -177,95 +180,67 @@ def parcel_update_view(request):
 
 
 
+
 @login_required
 def accept_parcel(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'POST':
-        awb = request.POST.get('awb')
-        order_number = request.POST.get('order_number')
-        sender_name = request.POST.get('sender_name')
-        sender_address = request.POST.get('sender_address')
-        sender_city = request.POST.get('sender_city')
-        sender_company = request.POST.get('sender_company')
-        sender_tel = request.POST.get('sender_tel')
-        sender_country = request.POST.get('sender_country')
-        receiver_name = request.POST.get('receiver_name')
-        receiver_address = request.POST.get('receiver_address')
-        receiver_company = request.POST.get('receiver_company')
-        receiver_tel = request.POST.get('receiver_tel')
-        receiver_city = request.POST.get('receiver_city')
-        receiver_country = request.POST.get('receiver_country')
-        desc = request.POST.get('desc')
-        freight = request.POST.get('freight')
-        freight_rate = request.POST.get('freight_rate')
-        insurance = request.POST.get('insurance')
-        awb_pcs = request.POST.get('awb_pcs')
-        awb_kg = request.POST.get('awb_kg')
-        chargable_weight = request.POST.get('chargable_weight')
-        terms = request.POST.get('terms')
-        volume = request.POST.get('volume')
-        height = request.POST.get('height')
-        width = request.POST.get('width')
-        length = request.POST.get('length')
-        currency = request.POST.get('currency')
-        date_received = request.POST.get('date_received')
-        expected_arrival_date = request.POST.get('expected_arrival_date')
-        custom_value = request.POST.get('custom_value')
-        payment_mode = request.POST.get('payment_mode')
-        awb_type = request.POST.get('awb_type')
+        data = request.POST
 
-        # Parse and make dates timezone-aware
-        parsed_date_received = timezone.make_aware(
-            datetime.datetime.strptime(date_received, "%Y-%m-%d")
-        ) if date_received else None
+        # Parse and make timezone-aware datetime fields
+        try:
+            date_received = timezone.make_aware(datetime.datetime.strptime(data.get('date_received'), "%Y-%m-%d"))
+        except (TypeError, ValueError):
+            date_received = None
 
-        parsed_expected_arrival_date = timezone.make_aware(
-            datetime.datetime.strptime(expected_arrival_date, "%Y-%m-%d")
-        ) if expected_arrival_date else None
+        try:
+            expected_arrival_date = timezone.make_aware(datetime.datetime.strptime(data.get('expected_arrival_date'), "%Y-%m-%d"))
+        except (TypeError, ValueError):
+            expected_arrival_date = None
 
+        # Create parcel
         parcel = Masterawb.objects.create(
-            awb=awb,
-            order_number=order_number,
-            sender_name=sender_name,
-            sender_tel=sender_tel,
-            awb_type=awb_type,
-            sender_address=sender_address,
-            sender_city=sender_city,
-            sender_company=sender_company,
-            sender_country=sender_country,
-            receiver_name=receiver_name,
-            receiver_tel=receiver_tel,
-            receiver_address=receiver_address,
-            receiver_city=receiver_city,
-            receiver_company=receiver_company,
-            receiver_country=receiver_country,
-            desc=desc,
-            freight=freight,
-            freight_rate=freight_rate,
-            insurance=insurance,
-            awb_pcs=awb_pcs,
-            awb_kg=awb_kg,
-            chargable_weight=chargable_weight,
-            terms=terms,
-            volume=volume,
-            height=height,
-            width=width,
-            length=length,
+            awb=data.get('awb'),
+            order_number=data.get('order_number'),
+            sender_name=data.get('sender_name'),
+            sender_address=data.get('sender_address'),
+            sender_city=data.get('sender_city'),
+            sender_company=data.get('sender_company'),
+            sender_tel=data.get('sender_tel'),
+            sender_country=data.get('sender_country'),
+            receiver_name=data.get('receiver_name'),
+            receiver_address=data.get('receiver_address'),
+            receiver_city=data.get('receiver_city'),
+            receiver_company=data.get('receiver_company'),
+            receiver_tel=data.get('receiver_tel'),
+            receiver_country=data.get('receiver_country'),
+            desc=data.get('desc'),
+            freight=data.get('freight'),
+            freight_rate=data.get('freight_rate'),
+            insurance=data.get('insurance'),
+            awb_pcs=data.get('awb_pcs'),
+            awb_kg=data.get('awb_kg') or 0,
+            chargable_weight=data.get('chargable_weight'),
+            terms=data.get('terms'),
+            currency=data.get('currency'),
+            date_received=date_received,
+            expected_arrival_date=expected_arrival_date,
+            custom_value=data.get('custom_value'),
+            payment_mode=data.get('payment_mode'),
+            awb_type=data.get('awb_type'),
+            volume=data.get('volume'),
+            height=data.get('height'),
+            width=data.get('width'),
+            length=data.get('length'),
             user=request.user,
-            currency=currency,
-            date_received=parsed_date_received,
-            expected_arrival_date=parsed_expected_arrival_date,
-            custom_value=custom_value,
-            payment_mode=payment_mode,
             accepted=True,
         )
 
+        # Create initial status
         MasterStatus.objects.create(
             master=parcel,
-            user=request.user,
             status='accepted',
-            date=timezone.now().date(),
-            time=timezone.now().time(),
-            terminal='CAN - Guanzhou'
+            terminal='CAN - Guanzhou',  # ensure this is in your STATION_CHOICES
+            user=request.user
         )
 
         return JsonResponse({
@@ -303,6 +278,8 @@ def accept_parcel(request):
             'custom_value': parcel.custom_value,
             'payment_mode': parcel.payment_mode,
         })
+
+
 
 @login_required
 def accept_form_view(request):
@@ -1157,108 +1134,89 @@ def invoice_detail(request, invoice_id):
 
 
 
-class InvoiceListView(View):
+class InvoiceListView(LoginRequiredMixin, View):
+
     def get(self, request, *args, **kwargs):
         sort_by = request.GET.get('sort_by', 'id')
         sort_order = request.GET.get('order', 'asc')
-        
-        # Determine the sorting order
         if sort_order == 'desc':
             sort_by = f'-{sort_by}'
-        
+
         invoices = Invoice.objects.filter(deleted=False).order_by(sort_by)
-        
+
         ActivityLog.objects.create(
-            user=self.request.user,
+            user=request.user,
             activity_type='READ',
             description='Viewed list of invoices'
         )
-        
-        context = {
+
+        return render(request, 'invoice/invoice-list.html', {
             "invoices": invoices,
             "sort_by": request.GET.get('sort_by', 'id'),
             "sort_order": sort_order,
-        }
-        
-        return render(self.request, 'invoice/invoice-list.html', context)
+        })
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         invoice_ids = request.POST.getlist("invoice_id")
-        invoice_ids = list(map(int, invoice_ids))
+        try:
+            invoice_ids = list(map(int, invoice_ids))
+        except ValueError:
+            return redirect('invoice-list')
 
-        update_status_for_invoices = request.POST['status']
-        update_detail_for_invoice = request.POST['invoice_detail']
+        update_status = request.POST.get("status")
+        invoice_detail = request.POST.get("invoice_detail")
         invoices = Invoice.objects.filter(id__in=invoice_ids)
 
-        # Define East Africa Time Zone
-        eat_timezone = pytz.timezone('Africa/Nairobi')
+        eat = pytz.timezone('Africa/Nairobi')
+        now_eat = timezone.now().astimezone(eat)
 
         for invoice in invoices:
             awb = invoice.awb
-            old_status = invoice.status  # Store the old status before changing it
-            
-            if update_status_for_invoices == 'paid':
-                invoice.status = 'paid'
-                invoice.invoice_detail = update_detail_for_invoice
-                # Set date_of_payment to the current time in EAT
-                invoice.date_of_payment = timezone.now()
-                awb.invoice_generated = False
-                awb.billed = True
-                MasterStatus.objects.create(
-                    master=awb,
-                    user=request.user,
-                    status='invoice paid',
-                    date=timezone_now().date(),
-                    time=timezone_now().time(),
-                    terminal='DAR - Dar es salaam',
-                    note='Invoice marked as paid'
-                )
-                ActivityLog.objects.create(
-                    user=request.user,
-                    activity_type='UPDATE',
-                    description=f'Marked invoice as paid for Invoice ID: {invoice.id}, AWB: {awb.awb}'
-                )
-            elif update_status_for_invoices == 'credited':
-                invoice.status = 'credited'
-                invoice.invoice_detail = update_detail_for_invoice
-                # Set date_of_payment to the current time in EAT
-                invoice.date_of_payment = timezone.now()
-                awb.billed = True
-                awb.invoice_generated = False
-                MasterStatus.objects.create(
-                    master=awb,
-                    user=request.user,
-                    status='invoice credited',
-                    date=timezone_now().date(),
-                    time=timezone_now().time(),
-                    terminal='DAR - Dar es salaam',
-                    note='Invoice marked as credited'
-                )
-                ActivityLog.objects.create(
-                    user=request.user,
-                    activity_type='UPDATE',
-                    description=f'Marked invoice as credited for Invoice ID: {invoice.id}, AWB: {awb.awb}'
-                )
-            
-            # Create an InvoiceHistory entry
+            old = invoice.status
+
+            invoice.status = update_status
+            invoice.invoice_detail = invoice_detail
+            invoice.date_of_payment = now_eat
+
+            awb.invoice_generated = False
+            awb.billed = True
+
+            status_note = 'invoice paid' if update_status == 'paid' else 'invoice credited'
+            MasterStatus.objects.create(
+                master=awb,
+                user=request.user,
+                status=status_note,
+                date=now_eat.date(),
+                time=now_eat.time(),
+                terminal='DAR - Dar es salaam',
+                note=f'Invoice marked as {update_status}'
+            )
+
+            ActivityLog.objects.create(
+                user=request.user,
+                activity_type='UPDATE',
+                description=f'Marked invoice as {update_status} for Invoice ID: {invoice.id}, AWB: {awb.awb}'
+            )
+
             InvoiceHistory.objects.create(
-                invoice_id=invoice.id,
-                awb=invoice.awb.awb,
+                invoice=invoice,
+                awb=awb.awb,
                 customer=invoice.customer,
-                pcs=invoice.awb.awb_pcs,
-                weight_kg=invoice.awb.awb_kg,
-                origin=invoice.awb.awb_type,
+                pcs=awb.awb_pcs,
+                weight_kg=awb.awb_kg,
+                origin=awb.awb_type,
                 total_amount_tzs=invoice.total_amount_tzs,
-                status=old_status,  # Store the old status in history
-                action=f'{old_status} -> {invoice.status}',  # Record the status change
+                status=old,
+                action=f'{old} -> {invoice.status}',
                 performed_by=request.user,
-                note=f'Invoice status changed from {old_status} to {invoice.status}'
+                note=f'Invoice status changed from {old} to {invoice.status}'
             )
 
             awb.save()
             invoice.save()
 
         return redirect('invoice-list')
+
 
 
 @login_required

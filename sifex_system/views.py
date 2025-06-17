@@ -175,6 +175,8 @@ def parcel_update_view(request):
             return JsonResponse({'awb': parcel.awb, 'sender_name': parcel.sender_name, 'order_number': parcel.order_number, 'id': parcel.id})
     return render(request, 'system/parcels/accept_parcel/parcel_update.html', {'form': form})
 
+
+
 @login_required
 def accept_parcel(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'POST':
@@ -211,8 +213,17 @@ def accept_parcel(request):
         payment_mode = request.POST.get('payment_mode')
         awb_type = request.POST.get('awb_type')
 
+        # Parse and make dates timezone-aware
+        parsed_date_received = timezone.make_aware(
+            datetime.datetime.strptime(date_received, "%Y-%m-%d")
+        ) if date_received else None
+
+        parsed_expected_arrival_date = timezone.make_aware(
+            datetime.datetime.strptime(expected_arrival_date, "%Y-%m-%d")
+        ) if expected_arrival_date else None
+
         parcel = Masterawb.objects.create(
-            awb=awb, 
+            awb=awb,
             order_number=order_number,
             sender_name=sender_name,
             sender_tel=sender_tel,
@@ -241,13 +252,22 @@ def accept_parcel(request):
             length=length,
             user=request.user,
             currency=currency,
-            date_received=date_received,
-            expected_arrival_date=expected_arrival_date,
+            date_received=parsed_date_received,
+            expected_arrival_date=parsed_expected_arrival_date,
             custom_value=custom_value,
             payment_mode=payment_mode,
             accepted=True,
         )
-        awb_status = MasterStatus.objects.create(master=parcel, user=request.user, status='accepted', date=datetime.datetime.now().date(), time=datetime.datetime.now().time(), terminal='CAN - Guanzhou')
+
+        MasterStatus.objects.create(
+            master=parcel,
+            user=request.user,
+            status='accepted',
+            date=timezone.now().date(),
+            time=timezone.now().time(),
+            terminal='CAN - Guanzhou'
+        )
+
         return JsonResponse({
             'id': parcel.id,
             'awb': parcel.awb,

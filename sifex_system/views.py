@@ -1,6 +1,6 @@
 from django.utils.dateparse import parse_date
 from django.conf.urls import handler403, handler404
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseNotFound
 import logging
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views.generic import ListView
@@ -24,15 +24,13 @@ from accounts.decorators import *
 from sifex_system.forms import PasswordChangingForm
 from sifex_system.models import *
 from sifex_system.forms import *
+from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import datetime
 import pytz
-from django.utils import timezone
 from core.models import *
 from .models import Invoice, LineItem, Customer, Attendance, Staff
 import pdfkit
-
-
-
 
 
 # for printing
@@ -178,9 +176,6 @@ def parcel_update_view(request):
             return JsonResponse({'awb': parcel.awb, 'sender_name': parcel.sender_name, 'order_number': parcel.order_number, 'id': parcel.id})
     return render(request, 'system/parcels/accept_parcel/parcel_update.html', {'form': form})
 
-
-
-
 @login_required
 def accept_parcel(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'POST':
@@ -217,23 +212,12 @@ def accept_parcel(request):
         payment_mode = request.POST.get('payment_mode')
         awb_type = request.POST.get('awb_type')
 
-        # Parse and make date fields timezone aware
-        parsed_date_received = (
-            timezone.make_aware(datetime.datetime.strptime(date_received, "%Y-%m-%d"))
-            if date_received else None
-        )
-
-        parsed_expected_arrival_date = (
-            timezone.make_aware(datetime.datetime.strptime(expected_arrival_date, "%Y-%m-%d"))
-            if expected_arrival_date else None
-        )
-
-        # Create the Masterawb record
         parcel = Masterawb.objects.create(
-            awb=awb,
+            awb=awb, 
             order_number=order_number,
             sender_name=sender_name,
             sender_tel=sender_tel,
+            awb_type=awb_type,
             sender_address=sender_address,
             sender_city=sender_city,
             sender_company=sender_company,
@@ -258,24 +242,13 @@ def accept_parcel(request):
             length=length,
             user=request.user,
             currency=currency,
-            date_received=parsed_date_received,
-            expected_arrival_date=parsed_expected_arrival_date,
+            date_received=date_received,
+            expected_arrival_date=expected_arrival_date,
             custom_value=custom_value,
             payment_mode=payment_mode,
-            awb_type=awb_type,
             accepted=True,
         )
-
-        # Create MasterStatus entry
-        MasterStatus.objects.create(
-            master=parcel,
-            user=request.user,
-            status='accepted',
-            date=timezone.now().date(),
-            time=timezone.now().time(),
-            terminal='CAN - Guanzhou'
-        )
-
+        awb_status = MasterStatus.objects.create(master=parcel, user=request.user, status='accepted', date=datetime.datetime.now().date(), time=datetime.datetime.now().time(), terminal='CAN - Guanzhou')
         return JsonResponse({
             'id': parcel.id,
             'awb': parcel.awb,
@@ -297,6 +270,7 @@ def accept_parcel(request):
             'freight_rate': parcel.freight_rate,
             'insurance': parcel.insurance,
             'awb_pcs': parcel.awb_pcs,
+            'awb_type': parcel.awb_type,
             'awb_kg': parcel.awb_kg,
             'chargable_weight': parcel.chargable_weight,
             'terms': parcel.terms,
@@ -309,7 +283,6 @@ def accept_parcel(request):
             'expected_arrival_date': parcel.expected_arrival_date,
             'custom_value': parcel.custom_value,
             'payment_mode': parcel.payment_mode,
-            'awb_type': parcel.awb_type,
         })
 
 @login_required
@@ -1166,107 +1139,226 @@ def invoice_detail(request, invoice_id):
 
 
 class InvoiceListView(View):
+    paginate_by = 40
+
     def get(self, request, *args, **kwargs):
-        sort_by = request.GET.get('sort_by', 'id')
-        sort_order = request.GET.get('order', 'asc')
-        
-        # Determine the sorting order
-        if sort_order == 'desc':
-            sort_by = f'-{sort_by}'
-        
-        invoices = Invoice.objects.filter(deleted=False).order_by(sort_by)
-        
-        ActivityLog.objects.create(
-            user=self.request.user,
-            activity_type='READ',
-            description='Viewed list of invoices'
-        )
-        
-        context = {
-            "invoices": invoices,
-            "sort_by": request.GET.get('sort_by', 'id'),
-            "sort_order": sort_order,
-        }
-        
-        return render(self.request, 'invoice/invoice-list.html', context)
+        error_message = None
+        try:
+            # Sorting params
+            sort_by = request.GET.get('sort_by', 'id')
+            sort_order = request.GET.get('order', 'asc')
 
-    def post(self, request):
-        invoice_ids = request.POST.getlist("invoice_id")
-        invoice_ids = list(map(int, invoice_ids))
+            # Filters from GET query params
+            customer_filter = request.GET.get('customer', '').strip()
+            status_filter = request.GET.get('status', '').strip()
+            tracking_filter = request.GET.get('tracking', '').strip()
 
-        update_status_for_invoices = request.POST['status']
-        update_detail_for_invoice = request.POST['invoice_detail']
-        invoices = Invoice.objects.filter(id__in=invoice_ids)
+            # Date filters
+            year_filter = request.GET.get('year', '').strip()
+            month_filter = request.GET.get('month', '').strip()
+            day_filter = request.GET.get('day', '').strip()
 
-        # Define East Africa Time Zone
-        eat_timezone = pytz.timezone('Africa/Nairobi')
+            order_prefix = '-' if sort_order == 'desc' else ''
+            ordering = f"{order_prefix}{sort_by}"
 
-        for invoice in invoices:
-            awb = invoice.awb
-            old_status = invoice.status  # Store the old status before changing it
-            
-            if update_status_for_invoices == 'paid':
-                invoice.status = 'paid'
-                invoice.invoice_detail = update_detail_for_invoice
-                # Set date_of_payment to the current time in EAT
-                invoice.date_of_payment = timezone.now()
-                awb.invoice_generated = False
-                awb.billed = True
-                MasterStatus.objects.create(
-                    master=awb,
-                    user=request.user,
-                    status='invoice paid',
-                    date=timezone_now().date(),
-                    time=timezone_now().time(),
-                    terminal='DAR - Dar es salaam',
-                    note='Invoice marked as paid'
-                )
-                ActivityLog.objects.create(
-                    user=request.user,
-                    activity_type='UPDATE',
-                    description=f'Marked invoice as paid for Invoice ID: {invoice.id}, AWB: {awb.awb}'
-                )
-            elif update_status_for_invoices == 'credited':
-                invoice.status = 'credited'
-                invoice.invoice_detail = update_detail_for_invoice
-                # Set date_of_payment to the current time in EAT
-                invoice.date_of_payment = timezone.now()
-                awb.billed = True
-                awb.invoice_generated = False
-                MasterStatus.objects.create(
-                    master=awb,
-                    user=request.user,
-                    status='invoice credited',
-                    date=timezone_now().date(),
-                    time=timezone_now().time(),
-                    terminal='DAR - Dar es salaam',
-                    note='Invoice marked as credited'
-                )
-                ActivityLog.objects.create(
-                    user=request.user,
-                    activity_type='UPDATE',
-                    description=f'Marked invoice as credited for Invoice ID: {invoice.id}, AWB: {awb.awb}'
-                )
-            
-            # Create an InvoiceHistory entry
-            InvoiceHistory.objects.create(
-                invoice_id=invoice.id,
-                awb=invoice.awb.awb,
-                customer=invoice.customer,
-                pcs=invoice.awb.awb_pcs,
-                weight_kg=invoice.awb.awb_kg,
-                origin=invoice.awb.awb_type,
-                total_amount_tzs=invoice.total_amount_tzs,
-                status=old_status,  # Store the old status in history
-                action=f'{old_status} -> {invoice.status}',  # Record the status change
-                performed_by=request.user,
-                note=f'Invoice status changed from {old_status} to {invoice.status}'
+            invoices_qs = Invoice.objects.filter(deleted=False)
+
+            # Filter by customer name (case-insensitive contains)
+            if customer_filter:
+                invoices_qs = invoices_qs.filter(customer__icontains=customer_filter)
+
+            # Filter by status
+            if status_filter:
+                if status_filter == 'not_paid':
+                    invoices_qs = invoices_qs.exclude(status__in=['paid', 'credited'])
+                else:
+                    invoices_qs = invoices_qs.filter(status=status_filter)
+
+            # Filter by tracking number (AWB)
+            if tracking_filter:
+                # Assuming invoice.awb.awb is the tracking number field
+                invoices_qs = invoices_qs.filter(awb__awb__icontains=tracking_filter)
+
+            # Filter by year, month, day on date_of_payment
+            # Only filter if date_of_payment is not null to avoid errors
+            if year_filter.isdigit():
+                invoices_qs = invoices_qs.filter(date_of_payment__year=int(year_filter))
+            if month_filter.isdigit():
+                invoices_qs = invoices_qs.filter(date_of_payment__month=int(month_filter))
+            if day_filter.isdigit():
+                invoices_qs = invoices_qs.filter(date_of_payment__day=int(day_filter))
+
+            invoices_qs = invoices_qs.order_by(ordering)
+
+            # Pagination
+            page = request.GET.get('page', 1)
+            paginator = Paginator(invoices_qs, self.paginate_by)
+            try:
+                invoices = paginator.page(page)
+            except PageNotAnInteger:
+                invoices = paginator.page(1)
+            except EmptyPage:
+                invoices = paginator.page(paginator.num_pages)
+
+            # Log activity
+            ActivityLog.objects.create(
+                user=request.user,
+                activity_type='READ',
+                description='Viewed list of invoices'
             )
 
-            awb.save()
-            invoice.save()
+        except Exception as e:
+            logger.error(f"Error fetching invoices: {e}")
+            invoices = []
+            error_message = "There was a problem loading invoices."
 
-        return redirect('invoice-list')
+        context = {
+            "invoices": invoices,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "customer_filter": customer_filter,
+            "status_filter": status_filter,
+            "tracking_filter": tracking_filter,
+            "year_filter": year_filter,
+            "month_filter": month_filter,
+            "day_filter": day_filter,
+            "error_message": error_message,
+            "page_obj": invoices,
+        }
+
+        return render(request, 'invoice/invoice-list.html', context)
+
+    def post(self, request, *args, **kwargs):
+        error_message = None
+        try:
+            invoice_ids = request.POST.getlist("invoice_id")
+            logger.info(f"Received invoice IDs from POST: {invoice_ids}")
+            invoice_ids = list(map(int, invoice_ids))
+            logger.info(f"Converted invoice IDs to int: {invoice_ids}")
+        except (ValueError, TypeError) as e:
+            logger.error(f"Invalid invoice IDs provided: {e}")
+            error_message = "Invalid invoice IDs submitted."
+            invoice_ids = []
+
+        update_status_for_invoices = request.POST.get('status', '').strip()
+        update_detail_for_invoice = request.POST.get('invoice_detail', '').strip()
+
+        logger.info(f"Requested update status: {update_status_for_invoices}")
+        logger.info(f"Requested invoice detail: {update_detail_for_invoice}")
+
+        if not invoice_ids:
+            invoices = Invoice.objects.filter(deleted=False).order_by('id')
+            context = {
+                "invoices": invoices,
+                "error_message": error_message or "No invoices selected.",
+                "sort_by": "id",
+                "sort_order": "asc",
+                "page_obj": invoices,
+            }
+            return render(request, 'invoice/invoice-list.html', context)
+
+        try:
+            invoices = Invoice.objects.filter(id__in=invoice_ids)
+            logger.info(f"Found {invoices.count()} invoices to update")
+
+            eat_timezone = pytz.timezone('Africa/Nairobi')
+            current_time = timezone.now().astimezone(eat_timezone)
+
+            for invoice in invoices:
+                logger.info(f"Updating invoice ID {invoice.id} - current status: {invoice.status}")
+                awb = invoice.awb
+                old_status = invoice.status
+
+                if update_status_for_invoices == 'paid':
+                    invoice.status = 'paid'
+                    invoice.invoice_detail = update_detail_for_invoice
+                    invoice.date_of_payment = current_time
+                    invoice.save()
+
+                    logger.info(f"Invoice ID {invoice.id} marked as paid")
+
+                    if awb:
+                        awb.invoice_generated = False
+                        awb.billed = True
+                        awb.save()
+
+                        MasterStatus.objects.create(
+                            master=awb,
+                            user=request.user,
+                            status='invoice paid',
+                            date=current_time.date(),
+                            time=current_time.time(),
+                            terminal='DAR - Dar es salaam',
+                            note='Invoice marked as paid'
+                        )
+
+                    ActivityLog.objects.create(
+                        user=request.user,
+                        activity_type='UPDATE',
+                        description=f'Marked invoice as paid for Invoice ID: {invoice.id}, AWB: {awb.awb if awb else "N/A"}'
+                    )
+
+                elif update_status_for_invoices == 'credited':
+                    invoice.status = 'credited'
+                    invoice.invoice_detail = update_detail_for_invoice
+                    invoice.date_of_payment = current_time
+                    invoice.save()
+
+                    logger.info(f"Invoice ID {invoice.id} marked as credited")
+
+                    if awb:
+                        awb.billed = True
+                        awb.invoice_generated = False
+                        awb.save()
+
+                        MasterStatus.objects.create(
+                            master=awb,
+                            user=request.user,
+                            status='invoice credited',
+                            date=current_time.date(),
+                            time=current_time.time(),
+                            terminal='DAR - Dar es salaam',
+                            note='Invoice marked as credited'
+                        )
+
+                    ActivityLog.objects.create(
+                        user=request.user,
+                        activity_type='UPDATE',
+                        description=f'Marked invoice as credited for Invoice ID: {invoice.id}, AWB: {awb.awb if awb else "N/A"}'
+                    )
+
+                InvoiceHistory.objects.create(
+                    invoice_id=invoice.id,
+                    awb=awb.awb if awb else None,
+                    customer=invoice.customer,
+                    pcs=awb.awb_pcs if awb else None,
+                    weight_kg=awb.awb_kg if awb else None,
+                    origin=awb.awb_type if awb else None,
+                    total_amount_tzs=invoice.total_amount_tzs,
+                    status=old_status,
+                    action=f'{old_status} -> {invoice.status}',
+                    performed_by=request.user,
+                    note=f'Invoice status changed from {old_status} to {invoice.status}'
+                )
+
+            logger.info(f"Successfully updated all invoices")
+
+            # All invoices updated, redirect back to list page
+            return redirect('invoice-list')
+
+        except Exception as e:
+            logger.error(f"Error updating invoices: {e}")
+            error_message = "There was an error processing your request."
+            invoices = Invoice.objects.filter(deleted=False).order_by('id')
+            context = {
+                "invoices": invoices,
+                "error_message": error_message,
+                "sort_by": "id",
+                "sort_order": "asc",
+                "page_obj": invoices,
+            }
+            return render(request, 'invoice/invoice-list.html', context)
+
 
 
 @login_required

@@ -15,6 +15,7 @@ class User(AbstractUser):
     management = models.BooleanField(default=False, verbose_name='management')
     report = models.BooleanField(default=False, verbose_name='report', null=True)
     profile_pic = models.ImageField(upload_to="user/profile/", null=True, blank=True)
+    delivery_man = models.BooleanField(default=False, verbose_name='delivery man')
 
 
 # @receiver(post_save, sender=settings.AUTH_USER_MODEL)

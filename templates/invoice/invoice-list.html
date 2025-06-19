@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${inv.customer || ''}</td>
         <td>${inv.date || ''}</td>
         <td><span class="${statusInfo.colorClass}">${statusInfo.label}</span></td>
-        <td><a href="/sifex/invoice_detail/${inv.id}" class="btn btn-sm btn-secondary">View Invoice</a></td>
+        <td><a href="/sifex/invoice_detail/${inv.id}" class="btn btn-sm text-white btn-secondary">View Invoice</a></td>
       `;
       tableBody.appendChild(tr);
     });

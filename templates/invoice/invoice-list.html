@@ -1,52 +1,53 @@
 {% extends 'system/app/index.html' %}
 {% load static %}
-{% block head %}
+{% block style  %}
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 <style>
-  /* Overlay styling */
-  #pleaseWaitOverlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(255,255,255,0.75);
-    z-index: 1050;
-    display: none;
-    justify-content: center;
-    align-items: center;
-  }
-  /* Flex row for overlay content */
+  /* Overlay styling with flex column layout */
+
   #pleaseWaitOverlay .content {
     display: flex;
-    flex-direction: row;
+    flex-direction: column; /* column layout for spinner and message */
     align-items: center;
     gap: 1rem;
   }
-  /* Responsive filter container styling */
+
+  .btn-success {
+    background-color: #28a745 !important; /* Green */
+    border-color: #28a745;
+  }
+
+  /* Make the filters container flex row like navbar and responsive */
   .filters-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    flex-direction: row; /* horizontal layout */
+    flex-wrap: wrap; /* allow wrapping on small screens */
     align-items: center;
+    gap: 0.75rem;
     width: 100%;
   }
-  /* Make inputs and buttons responsive */
-  .filter-input {
-    flex: 1 1 auto;
-    min-width: 150px;
-    max-width: 250px;
-  }
-  /* Buttons container */
-  .buttons-container {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-  /* Make the entire header responsive */
+
+  /* Responsive adjustments */
   @media(max-width: 768px) {
     .filters-container {
       flex-direction: column;
       align-items: stretch;
     }
+    /* Items per page above filters, make it full width on small screens */
+    .items-per-page {
+      width: 100%;
+    }
+  }
+
+  /* Style for the item count text below table */
+  #itemCount {
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+
+  /* Style for "View Invoice" button to have white text */
+  .view-invoice-btn {
+    color: #fff !important;
   }
 </style>
 {% endblock %}
@@ -57,29 +58,40 @@
   <div class="card">
     <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center">
       <h5 class="mb-0">Invoices</h5>
-      <!-- Filters and items per page -->
-      <div class="d-flex flex-wrap gap-2 align-items-center mt-2 mt-md-0 w-100 justify-content-end">
-        <div class="d-flex align-items-center filters-container flex-wrap">
-          <label for="pageSizeSelect" class="mb-0 me-2">Items per page:</label>
-          <select id="pageSizeSelect" class="form-select filter-input me-2" style="min-width: auto;">
-            <option value="30" selected>30</option>
-            <option value="100">100</option>
-            <option value="200">200</option>
-            <option value="500">500</option>
-          </select>
-          <!-- Search Inputs -->
-          <input type="text" id="searchCustomer" class="form-control filter-input" placeholder="Search by Customer">
-          <input type="text" id="searchTracking" class="form-control filter-input" placeholder="Search by Tracking Number">
-          <input type="date" id="filterDate" class="form-control filter-input" placeholder="Filter by Date">
-          <div class="buttons-container mt-2 mt-md-0">
-            <button id="searchBtn" class="btn btn-primary">Search</button>
-            <button id="resetBtn" class="btn btn-secondary">Reset</button>
-          </div>
+      <!-- Items per page dropdown placed above filters -->
+      <div class="d-flex items-per-page mb-2 mb-md-0" style="width: 100%;">
+        <label for="pageSizeSelect" class="mb-0 me-2">Items per page:</label>
+        <select id="pageSizeSelect" class="form-select" style="min-width: auto; width: auto;">
+          <option value="30" selected>30</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+        </select>
+      </div>
+      <!-- Filters as flex row (like navbar) -->
+      <div class="d-flex flex-row flex-wrap gap-2 align-items-center filters-container mt-2 mt-md-0">
+        <!-- Search by Customer -->
+        <input type="text" id="searchCustomer" class="form-control filter-input" placeholder="Search by Customer" style="min-width: 150px; max-width: 250px;">
+        <!-- Search Tracking -->
+        <input type="text" id="searchTracking" class="form-control filter-input" placeholder="Search by Tracking Number" style="min-width: 150px; max-width: 250px;">
+        <!-- Filter by Date -->
+        <input type="date" id="filterDate" class="form-control filter-input" style="min-width: 150px; max-width: 250px;">
+        <!-- Filter by Status -->
+        <select id="filterStatus" class="form-select filter-input" style="min-width: 150px; max-width: 250px;">
+          <option value="" selected>All Statuses</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+          <option value="credited">Credited</option>
+        </select>
+        <!-- Buttons -->
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+          <button id="searchBtn" class="btn btn-primary">Search</button>
+          <button id="resetBtn" class="btn btn-secondary">Reset</button>
         </div>
       </div>
     </div>
     <div class="card-body p-0 position-relative" style="min-height: 300px;">
-      <!-- Please Wait overlay with flex row -->
+      <!-- Overlay for loading spinner -->
       <div id="pleaseWaitOverlay" class="d-flex">
         <div class="content">
           <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
@@ -88,7 +100,8 @@
           <div>Please wait...</div>
         </div>
       </div>
-      <!-- Table -->
+
+      <!-- Table for invoices -->
       <div class="table-responsive p-3" style="overflow-y: auto;">
         <table class="table table-striped table-hover mb-0" id="invoiceTable">
           <thead class="table-light">
@@ -106,7 +119,11 @@
           <tbody id="invoiceTableBody"></tbody>
         </table>
       </div>
-      <!-- Pagination -->
+
+      <!-- Item count display -->
+      <div id="itemCount" class="text-center"></div>
+
+      <!-- Pagination controls -->
       <div id="paginationControls" class="p-3 d-flex justify-content-center"></div>
     </div>
   </div>
@@ -115,151 +132,169 @@
 
 {% block script %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const tableBody = document.getElementById('invoiceTableBody');
-  const paginationDiv = document.getElementById('paginationControls');
-  const pageSizeSelect = document.getElementById('pageSizeSelect');
-  const overlay = document.getElementById('pleaseWaitOverlay');
+  document.addEventListener('DOMContentLoaded', () => {
+    const tableBody = document.getElementById('invoiceTableBody');
+    const paginationDiv = document.getElementById('paginationControls');
+    const itemCountDiv = document.getElementById('itemCount');
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const overlay = document.getElementById('pleaseWaitOverlay');
 
-  const searchCustomerInput = document.getElementById('searchCustomer');
-  const searchTrackingInput = document.getElementById('searchTracking');
-  const filterDateInput = document.getElementById('filterDate');
-  const searchBtn = document.getElementById('searchBtn');
-  const resetBtn = document.getElementById('resetBtn');
+    const searchCustomerInput = document.getElementById('searchCustomer');
+    const searchTrackingInput = document.getElementById('searchTracking');
+    const filterDateInput = document.getElementById('filterDate');
+    const filterStatusSelect = document.getElementById('filterStatus');
+    const searchBtn = document.getElementById('searchBtn');
+    const resetBtn = document.getElementById('resetBtn');
 
-  let currentPage = 1;
-  let totalPages = 1;
-  let currentPageSize = parseInt(pageSizeSelect.value);
-  let isLoading = false;
-  let loaderTimeout = null;
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentPageSize = parseInt(pageSizeSelect.value);
+    let totalItems = 0;
+    let isLoading = false;
+    let loaderTimeout = null;
 
-  // Filters object
-  let filters = { customer: '', tracking: '', date: '' };
+    // Filters object
+    let filters = { customer: '', tracking: '', date: '', status: '' };
 
-  const showOverlay = () => {
-    overlay.style.display = 'flex';
-    loaderTimeout = setTimeout(() => { hideOverlay(); }, 30000);
-  };
-  const hideOverlay = () => {
-    overlay.style.display = 'none';
-    if (loaderTimeout) { clearTimeout(loaderTimeout); loaderTimeout = null; }
-  };
+    const showOverlay = () => {
+      overlay.style.display = 'flex';
+      if (loaderTimeout) clearTimeout(loaderTimeout);
+      loaderTimeout = setTimeout(() => { hideOverlay(); }, 30000);
+    };
+    const hideOverlay = () => {
+      overlay.style.display = 'none';
+      if (loaderTimeout) clearTimeout(loaderTimeout);
+    };
 
-  const getStatusLabelAndColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'paid': return { label: 'Paid', colorClass: 'badge bg-success' };
-      case 'unpaid': return { label: 'Unpaid', colorClass: 'badge bg-warning text-dark' };
-      case 'credited': return { label: 'Credited', colorClass: 'badge bg-info text-white' };
-      default: return { label: status || '', colorClass: 'badge bg-secondary' };
-    }
-  };
+    const getStatusLabelAndColor = (status) => {
+      switch (status?.toLowerCase()) {
+        case 'paid': return { label: 'Paid', colorClass: 'badge bg-success' };
+        case 'unpaid': return { label: 'Unpaid', colorClass: 'badge bg-warning text-dark' };
+        case 'credited': return { label: 'Credited', colorClass: 'badge bg-info text-white' };
+        default: return { label: status || '', colorClass: 'badge bg-secondary' };
+      }
+    };
 
-  const fetchInvoices = (page = 1, pageSize = currentPageSize) => {
-    if (isLoading) return;
-    isLoading = true;
-    showOverlay();
+    const fetchInvoices = (page = 1, pageSize = currentPageSize) => {
+      if (isLoading) return;
+      isLoading = true;
+      showOverlay();
 
-    const url = new URL('/sifex/api/invoices/', window.location.origin);
-    url.searchParams.set('page', page);
-    url.searchParams.set('page_size', pageSize);
-    if (filters.customer) url.searchParams.set('customer', filters.customer);
-    if (filters.tracking) url.searchParams.set('awb', filters.tracking);
-    if (filters.date) url.searchParams.set('date', filters.date);
+      const url = new URL('/sifex/api/invoices/', window.location.origin);
+      url.searchParams.set('page', page);
+      url.searchParams.set('page_size', pageSize);
+      if (filters.customer) url.searchParams.set('customer', filters.customer);
+      if (filters.tracking) url.searchParams.set('awb', filters.tracking);
+      if (filters.date) url.searchParams.set('date', filters.date);
+      if (filters.status) url.searchParams.set('status', filters.status);
 
-    fetch(url)
-      .then(res => { if (!res.ok) throw new Error('Error fetching'); return res.json(); })
-      .then(data => {
-        populateTable(data.invoices);
-        renderPagination(data);
-        currentPage = data.page;
-        totalPages = data.num_pages;
-      })
-      .catch(e => {
-        console.error(e);
-        tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading invoices</td></tr>';
-        paginationDiv.innerHTML = '';
-      })
-      .finally(() => {
-        isLoading = false;
-        hideOverlay();
+      fetch(url)
+        .then(res => { if (!res.ok) throw new Error('Error fetching'); return res.json(); })
+        .then(data => {
+          populateTable(data.invoices);
+          renderPagination(data);
+          currentPage = data.page;
+          totalPages = data.num_pages;
+          totalItems = data.total_count; // ensure your API returns total_count
+          updateItemCount();
+        })
+        .catch(e => {
+          console.error(e);
+          tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading invoices</td></tr>';
+          paginationDiv.innerHTML = '';
+          itemCountDiv.innerHTML = '';
+        })
+        .finally(() => {
+          isLoading = false;
+          hideOverlay();
+        });
+    };
+
+    const populateTable = (invoices) => {
+      tableBody.innerHTML = '';
+      if (!invoices || invoices.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No invoices found.</td></tr>';
+        return;
+      }
+      invoices.forEach(inv => {
+        const statusInfo = getStatusLabelAndColor(inv.status);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input class="form-check-input" type="checkbox" value="${inv.id}"></td>
+          <td>#${inv.id}</td>
+          <td>${inv.awb || ''}</td>
+          <td>${inv.origin || ''}</td>
+          <td>${inv.customer || ''}</td>
+          <td>${inv.date || ''}</td>
+          <td><span class="${statusInfo.colorClass}">${statusInfo.label}</span></td>
+          <td><a href="/sifex/invoice_detail/${inv.id}" class="btn btn-xs btn-success text-white  view-invoice-btn">View Invoice</a></td>
+        `;
+        tableBody.appendChild(tr);
       });
-  };
+    };
 
-  const populateTable = (invoices) => {
-    tableBody.innerHTML = '';
-    if (!invoices || invoices.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No invoices found.</td></tr>';
-      return;
-    }
-    invoices.forEach(inv => {
-      const statusInfo = getStatusLabelAndColor(inv.status);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><input class="form-check-input" type="checkbox" value="${inv.id}"></td>
-        <td>#${inv.id}</td>
-        <td>${inv.awb || ''}</td>
-        <td>${inv.origin || ''}</td>
-        <td>${inv.customer || ''}</td>
-        <td>${inv.date || ''}</td>
-        <td><span class="${statusInfo.colorClass}">${statusInfo.label}</span></td>
-        <td><a href="/sifex/invoice_detail/${inv.id}" class="btn btn-sm text-white btn-secondary">View Invoice</a></td>
-      `;
-      tableBody.appendChild(tr);
-    });
-  };
-
-  const renderPagination = (data) => {
-    const { page, num_pages, has_previous, has_next } = data;
-    let html = '<nav><ul class="pagination flex-wrap justify-content-center mb-0">';
-    html += has_previous
-      ? `<li class="page-item"><a class="page-link" href="#" data-page="${page - 1}">Previous</a></li>`
-      : `<li class="page-item disabled"><span class="page-link">Previous</span></li>`;
-    const maxPages = 5;
-    let startPage = Math.max(1, page - Math.floor(maxPages/2));
-    let endPage = Math.min(num_pages, startPage + maxPages -1);
-    if (endPage - startPage < maxPages -1) startPage = Math.max(1, endPage - maxPages +1);
-    for (let i = startPage; i <= endPage; i++) {
-      html += i === page
-        ? `<li class="page-item active" aria-current="page"><span class="page-link">${i}</span></li>`
-        : `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
-    }
-    html += has_next
-      ? `<li class="page-item"><a class="page-link" href="#" data-page="${page +1}">Next</a></li>`
-      : `<li class="page-item disabled"><span class="page-link">Next</span></li>`;
-    html += '</ul></nav>';
-    paginationDiv.innerHTML = html;
-    // add event listeners
-    paginationDiv.querySelectorAll('.page-link').forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        const p = parseInt(e.target.dataset.page);
-        if (!isNaN(p)) fetchInvoices(p);
+    const renderPagination = (data) => {
+      const { page, num_pages, has_previous, has_next } = data;
+      let html = '<nav><ul class="pagination flex-wrap justify-content-center mb-0">';
+      html += has_previous
+        ? `<li class="page-item"><a class="page-link" href="#" data-page="${page - 1}">Previous</a></li>`
+        : `<li class="page-item disabled"><span class="page-link">Previous</span></li>`;
+      const maxPages = 5;
+      let startPage = Math.max(1, page - Math.floor(maxPages/2));
+      let endPage = Math.min(num_pages, startPage + maxPages -1);
+      if (endPage - startPage < maxPages -1) startPage = Math.max(1, endPage - maxPages +1);
+      for (let i = startPage; i <= endPage; i++) {
+        html += i === page
+          ? `<li class="page-item active" aria-current="page"><span class="page-link">${i}</span></li>`
+          : `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+      }
+      html += has_next
+        ? `<li class="page-item"><a class="page-link" href="#" data-page="${page +1}">Next</a></li>`
+        : `<li class="page-item disabled"><span class="page-link">Next</span></li>`;
+      html += '</ul></nav>';
+      paginationDiv.innerHTML = html;
+      // attach event
+      paginationDiv.querySelectorAll('.page-link').forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const p = parseInt(e.target.dataset.page);
+          if (!isNaN(p)) fetchInvoices(p);
+        });
       });
+    };
+
+    const updateItemCount = () => {
+      if (totalItems != null) {
+        const startItem = (currentPage - 1) * currentPageSize + 1;
+        const endItem = Math.min((currentPage - 1) * currentPageSize + document.querySelectorAll('#invoiceTableBody tr').length, totalItems);
+        itemCountDiv.innerHTML = `${currentPageSize} invoices per page | Showing ${startItem} to ${endItem} of ${totalItems} invoices`;
+      } else {
+        itemCountDiv.innerHTML = '';
+      }
+    };
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      filters.customer = document.getElementById('searchCustomer').value.trim();
+      filters.tracking = document.getElementById('searchTracking').value.trim();
+      filters.date = document.getElementById('filterDate').value;
+      filters.status = document.getElementById('filterStatus').value;
+      fetchInvoices(1);
     });
-  };
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('searchCustomer').value = '';
+      document.getElementById('searchTracking').value = '';
+      document.getElementById('filterDate').value = '';
+      document.getElementById('filterStatus').value = '';
+      filters = { customer: '', tracking: '', date: '', status: '' };
+      fetchInvoices(1);
+    });
+    pageSizeSelect.addEventListener('change', () => {
+      currentPageSize = parseInt(pageSizeSelect.value);
+      fetchInvoices(1);
+    });
 
-  document.getElementById('searchBtn').addEventListener('click', () => {
-    filters.customer = document.getElementById('searchCustomer').value.trim();
-    filters.tracking = document.getElementById('searchTracking').value.trim();
-    filters.date = document.getElementById('filterDate').value;
-    fetchInvoices(1);
+    // initial fetch
+    fetchInvoices();
   });
-
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    document.getElementById('searchCustomer').value = '';
-    document.getElementById('searchTracking').value = '';
-    document.getElementById('filterDate').value = '';
-    filters = { customer: '', tracking: '', date: '' };
-    fetchInvoices(1);
-  });
-
-  pageSizeSelect.addEventListener('change', () => {
-    currentPageSize = parseInt(pageSizeSelect.value);
-    fetchInvoices(1);
-  });
-
-  // fetch initial data
-  fetchInvoices();
-});
 </script>
 {% endblock %}

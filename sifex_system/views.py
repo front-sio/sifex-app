@@ -1158,7 +1158,7 @@ class InvoiceDataAPIView(View):
             invoices_qs = invoices_qs.filter(customer__icontains=customer_filter)
             logger.info(f"Filtered by customer '{customer_filter}': {invoices_qs.count()} remaining")
 
-        # Apply status filter
+        # Apply status filter if provided
         if status_filter:
             if status_filter == 'unpaid':
                 # Exclude paid and credited
@@ -1185,6 +1185,7 @@ class InvoiceDataAPIView(View):
         logger.info(f"Total combined invoices for pagination: {len(combined_invoices)}")
 
         # Paginate combined invoices
+        from django.core.paginator import Paginator
         paginator = Paginator(combined_invoices, 30)
         page_obj = paginator.get_page(page_number)
 
@@ -1222,11 +1223,11 @@ class InvoiceDataAPIView(View):
             'num_pages': paginator.num_pages,
             'has_previous': page_obj.has_previous(),
             'has_next': page_obj.has_next(),
+            'total_count': paginator.count,
         }
 
         # Log final response info
         logger.info(f"Returning page {page_obj.number} with {len(data)} invoices")
-
         return JsonResponse(response_data)
     
 

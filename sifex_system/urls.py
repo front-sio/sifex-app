@@ -91,6 +91,7 @@ urlpatterns = [
     path('activity-logs/', activity_log_list, name='activity_log_list'),
 
     path('invoices/', InvoiceListView.as_view(), name="invoice-list"),
+    path('api/invoices/', InvoiceDataAPIView.as_view(), name='invoice-data-api'),
     path('create/<int:pk>/', createInvoice, name="invoice-create"),
     path('invoice-detail/<id>', view_PDF, name='invoice-detail'),
     path('generate-invoice/', invoice_generation, name="generate-invoice"),

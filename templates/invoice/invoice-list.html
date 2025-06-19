@@ -1,125 +1,230 @@
 {% extends 'system/app/index.html' %}
-{% load bulma_tags %}
-{% block content %}
+{% load static %}
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    /* Optional: Additional styles for overlay if needed */
+    #pleaseWaitOverlay {
+      position: fixed; /* Cover entire viewport */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.75); /* semi-transparent background */
+      z-index: 1050;
+      display: none; /* hide by default */
+      justify-content: center; /* center content horizontally */
+      align-items: center; /* center content vertically */
+    }
+  </style>
+{% endblock %}
 {% block title %}Invoices{% endblock %}
+
 {% include 'system/partials/_messages.html' %}
-<form action="{% url 'invoice-list' %}" method="post">{% csrf_token %}
-    <div class="card">
-        <header class="card-header">
-        </header>
-        <div class="card-content">
-            <div class="content table-responsive">
-                <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>
-                                <a href="?sort_by=id&order={% if sort_order == 'asc' %}desc{% else %}asc{% endif %}">
-                                    INVOICE NO:
-                                    {% if sort_by == 'id' %}
-                                        {% if sort_order == 'asc' %}
-                                            <span>&#9650;</span> <!-- Upward arrow -->
-                                        {% else %}
-                                            <span>&#9660;</span> <!-- Downward arrow -->
-                                        {% endif %}
-                                    {% endif %}
-                                </a>
-                            </th>
-                            <th>TRACKING NUMBER</th>
-                            <th>ORIGIN</th>
-                            <th>CUSTOMER</th>
-                            <th>DATE</th>
-                            <th>STATUS</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for invoice in invoices %}
-                        <tr>
-                            <td><input class="checkbox" type="checkbox" value="{{ invoice.id }}" name="invoice_id" size="1" /></td>
-                            <td width="1%">#{{ invoice.id }}</td>
-                            <td width="9%">{{ invoice.awb.awb }}</td>
-                            <td width="9%">{{ invoice.origin }}</td>
-                            <td width="9%">{{ invoice.customer }}</td>
-                            <td>{{ invoice.date }}</td>
-                            <td class="level-right">
-                                {% if invoice.status == 'paid' %}
-                                <a class="button is-small is-success" href="#">Paid</a>
-                                {% elif invoice.status == 'credited' %}
-                                <a class="button is-small is-primary" href="#">Credited</a>
-                                {% else %}
-                                <a class="button is-small is-warning" href="#">Not Paid</a>
-                                {% endif %}
-                            </td>
-                            
-                            <td width="1%">
-                                {% if request.user.management %}
-                                <a href="#" class="delete-btn button is-small is-info" data-url="{% url 'delete-invoice' id=invoice.id %}">
-                                    Delete
-                                </a>
-                                {% endif %}
-                                <a class="button is-small is-info" href="{% url 'invoice_detail' invoice.id %}">View Invoice</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+
+{% block content %}
+<div class="container my-3">
+  <div class="card">
+    <div class="card-header bg-white text-white d-flex justify-content-between align-items-center flex-wrap">
+      <h5 class="mb-0">Invoices</h5>
+      <div class="d-flex align-items-center mt-2 mt-md-0">
+        <label for="pageSizeSelect" class="form-label me-2 mb-0">Items per page:</label>
+        <select id="pageSizeSelect" class="form-select d-inline-block w-auto">
+          <option value="30" selected>30</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-body p-0 position-relative" style="min-height: 300px;">
+      <!-- Please Wait message overlay -->
+      <div id="pleaseWaitOverlay" class="d-flex" style="display: none;">
+        <div class="text-center">
+          <div class="spinner-border text-primary mb-2" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div>Please wait...</div>
         </div>
-    </div>
-</form>
+      </div>
 
-<!-- Modal for confirming deletion -->
-<div class="modal" id="confirmModal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Confirm Deletion</p>
-            <button class="delete" aria-label="close"></button>
-        </header>
-        <section class="modal-card-body">
-            <p>Are you sure you want to delete this invoice?</p>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-danger" id="confirmDelete">Delete</button>
-            <button class="button cancel-btn">Cancel</button>
-        </footer>
+      <!-- Table -->
+      <div class="table-responsive p-3" style="overflow-y: auto;">
+        <table class="table table-striped table-hover mb-0" id="invoiceTable">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th>#ID</th>
+              <th>Tracking Number</th>
+              <th>Origin</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoiceTableBody">
+            <!-- Data will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div id="paginationControls" class="p-3 d-flex justify-content-center"></div>
     </div>
+  </div>
 </div>
-
-{% endblock content %}
+{% endblock %}
 
 {% block script %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const deleteButtons = document.querySelectorAll('.delete-btn');
-    const modal = document.getElementById('confirmModal');
-    const closeButton = modal.querySelector('.delete');
-    const cancelButton = modal.querySelector('.cancel-btn');
-    const confirmButton = modal.querySelector('#confirmDelete');
-    let deleteUrl = '';
+document.addEventListener('DOMContentLoaded', () => {
+  const tableBody = document.getElementById('invoiceTableBody');
+  const paginationDiv = document.getElementById('paginationControls');
+  const pageSizeSelect = document.getElementById('pageSizeSelect');
+  const overlay = document.getElementById('pleaseWaitOverlay');
 
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-            deleteUrl = this.getAttribute('data-url');
-            modal.classList.add('is-active');
-        });
-    });
+  let currentPage = 1;
+  let totalPages = 1;
+  let currentPageSize = parseInt(pageSizeSelect.value);
+  let isLoading = false;
+  let loaderTimeout = null;
 
-    closeButton.addEventListener('click', () => {
-        modal.classList.remove('is-active');
-    });
+  const showOverlay = () => {
+    overlay.style.display = 'flex'; // display flex for centering
+    // Set a timeout to hide loader after 30 seconds
+    loaderTimeout = setTimeout(() => {
+      hideOverlay();
+    }, 30000); // 30 seconds
+  };
 
-    cancelButton.addEventListener('click', () => {
-        modal.classList.remove('is-active');
-    });
+  const hideOverlay = () => {
+    overlay.style.display = 'none';
+    if (loaderTimeout) {
+      clearTimeout(loaderTimeout);
+      loaderTimeout = null;
+    }
+  };
 
-    confirmButton.addEventListener('click', () => {
-        confirmButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
-        confirmButton.classList.add('is-loading');
-        window.location.href = deleteUrl;
+  const getStatusLabelAndColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'paid':
+        return { label: 'Paid', colorClass: 'badge bg-success' };
+      case 'pending':
+        return { label: 'Pending', colorClass: 'badge bg-warning text-dark' };
+      case 'cancelled':
+        return { label: 'Cancelled', colorClass: 'badge bg-danger' };
+      case 'processing':
+        return { label: 'Processing', colorClass: 'badge bg-info text-white' };
+      default:
+        return { label: status || '', colorClass: 'badge bg-secondary' };
+    }
+  };
+
+  const fetchInvoices = (page = 1, pageSize = currentPageSize) => {
+    if (isLoading) return;
+    isLoading = true;
+    showOverlay();
+
+    const url = new URL('/sifex/api/invoices/', window.location.origin);
+    url.searchParams.set('page', page);
+    url.searchParams.set('page_size', pageSize);
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch data.');
+        return response.json();
+      })
+      .then(data => {
+        populateTable(data.invoices);
+        renderPagination(data);
+        currentPage = data.page;
+        totalPages = data.num_pages;
+      })
+      .catch(error => {
+        console.error(error);
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading invoices.</td></tr>';
+        paginationDiv.innerHTML = '';
+      })
+      .finally(() => {
+        isLoading = false;
+        hideOverlay();
+      });
+  };
+
+  const populateTable = (invoices) => {
+    tableBody.innerHTML = '';
+    if (!invoices || invoices.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No invoices found.</td></tr>';
+      return;
+    }
+
+    invoices.forEach(inv => {
+      const statusInfo = getStatusLabelAndColor(inv.status);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="form-check-input" type="checkbox" value="${inv.id}"></td>
+        <td>#${inv.id}</td>
+        <td>${inv.awb || ''}</td>
+        <td>${inv.origin || ''}</td>
+        <td>${inv.customer || ''}</td>
+        <td>${inv.date || ''}</td>
+        <td><span class="${statusInfo.colorClass}">${statusInfo.label}</span></td>
+        <td>
+          <a href="/sifex/invoice_detail/${inv.id}" class="btn btn-sm btn-secondary">View Invoice</a>
+        </td>
+      `;
+      tableBody.appendChild(tr);
     });
+  };
+
+  const renderPagination = (data) => {
+    const { page, num_pages, has_previous, has_next } = data;
+    let html = '<nav><ul class="pagination flex-wrap justify-content-center mb-0">';
+
+    // Previous button
+    html += has_previous
+      ? `<li class="page-item"><a class="page-link" href="#" data-page="${page - 1}">Previous</a></li>`
+      : `<li class="page-item disabled"><span class="page-link">Previous</span></li>`;
+
+    const maxPages = 5;
+    let startPage = Math.max(1, page - Math.floor(maxPages / 2));
+    let endPage = Math.min(num_pages, startPage + maxPages - 1);
+    if (endPage - startPage < maxPages - 1) {
+      startPage = Math.max(1, endPage - maxPages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      html += i === page
+        ? `<li class="page-item active" aria-current="page"><span class="page-link">${i}</span></li>`
+        : `<li class="page-item"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+    }
+
+    // Next button
+    html += has_next
+      ? `<li class="page-item"><a class="page-link" href="#" data-page="${page + 1}">Next</a></li>`
+      : `<li class="page-item disabled"><span class="page-link">Next</span></li>`;
+
+    html += '</ul></nav>';
+    paginationDiv.innerHTML = html;
+
+    // Attach click events for pagination links
+    paginationDiv.querySelectorAll('.page-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const nextPage = parseInt(e.target.dataset.page);
+        if (!isNaN(nextPage)) fetchInvoices(nextPage);
+      });
+    });
+  };
+
+  pageSizeSelect.addEventListener('change', () => {
+    currentPageSize = parseInt(pageSizeSelect.value);
+    fetchInvoices(1);
+  });
+
+  fetchInvoices(); // initial load
 });
 </script>
 {% endblock %}

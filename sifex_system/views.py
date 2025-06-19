@@ -26,6 +26,7 @@ from sifex_system.models import *
 from sifex_system.forms import *
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 import datetime
 import pytz
 from core.models import *
@@ -1138,228 +1139,102 @@ def invoice_detail(request, invoice_id):
 
 
 
-class InvoiceListView(View):
-    paginate_by = 40
+class InvoiceDataAPIView(View):
+    def get(self, request):
+        # Get parameters with default values
+        page_number = int(request.GET.get('page', 1))
+        customer_filter = request.GET.get('customer', '').strip()
+        status_filter = request.GET.get('status', '').strip()
+        tracking_filter = request.GET.get('tracking', '').strip()
 
-    def get(self, request, *args, **kwargs):
-        error_message = None
-        try:
-            # Sorting params
-            sort_by = request.GET.get('sort_by', 'id')
-            sort_order = request.GET.get('order', 'asc')
+        # Base queryset: filter out deleted invoices
+        invoices_qs = Invoice.objects.filter(deleted=False)
 
-            # Filters from GET query params
-            customer_filter = request.GET.get('customer', '').strip()
-            status_filter = request.GET.get('status', '').strip()
-            tracking_filter = request.GET.get('tracking', '').strip()
+        # Log the initial queryset count
+        logger.info(f"Initial invoice count: {invoices_qs.count()}")
 
-            # Date filters
-            year_filter = request.GET.get('year', '').strip()
-            month_filter = request.GET.get('month', '').strip()
-            day_filter = request.GET.get('day', '').strip()
+        # Apply customer filter if provided
+        if customer_filter:
+            invoices_qs = invoices_qs.filter(customer__icontains=customer_filter)
+            logger.info(f"Filtered by customer '{customer_filter}': {invoices_qs.count()} remaining")
 
-            order_prefix = '-' if sort_order == 'desc' else ''
-            ordering = f"{order_prefix}{sort_by}"
+        # Apply status filter
+        if status_filter:
+            if status_filter == 'unpaid':
+                # Exclude paid and credited
+                invoices_qs = invoices_qs.exclude(status__in=['paid', 'credited'])
+                logger.info(f"Filtered by unpaid status: {invoices_qs.count()} remaining")
+            else:
+                invoices_qs = invoices_qs.filter(status=status_filter)
+                logger.info(f"Filtered by status '{status_filter}': {invoices_qs.count()} remaining")
 
-            invoices_qs = Invoice.objects.filter(deleted=False)
+        # Apply tracking filter
+        if tracking_filter:
+            invoices_qs = invoices_qs.filter(awb__awb__icontains=tracking_filter)
+            logger.info(f"Filtered by tracking '{tracking_filter}': {invoices_qs.count()} remaining")
 
-            # Filter by customer name (case-insensitive contains)
-            if customer_filter:
-                invoices_qs = invoices_qs.filter(customer__icontains=customer_filter)
+        # Order by date descending
+        invoices_qs = invoices_qs.order_by('-date')
 
-            # Filter by status
-            if status_filter:
-                if status_filter == 'not_paid':
-                    invoices_qs = invoices_qs.exclude(status__in=['paid', 'credited'])
-                else:
-                    invoices_qs = invoices_qs.filter(status=status_filter)
+        # Separate unpaid invoices to display first
+        unpaid_invoices = list(invoices_qs.filter(status='unpaid'))
+        other_invoices = list(invoices_qs.exclude(status='unpaid'))
+        combined_invoices = unpaid_invoices + other_invoices
 
-            # Filter by tracking number (AWB)
-            if tracking_filter:
-                # Assuming invoice.awb.awb is the tracking number field
-                invoices_qs = invoices_qs.filter(awb__awb__icontains=tracking_filter)
+        # Log total invoices after reordering
+        logger.info(f"Total combined invoices for pagination: {len(combined_invoices)}")
 
-            # Filter by year, month, day on date_of_payment
-            # Only filter if date_of_payment is not null to avoid errors
-            if year_filter.isdigit():
-                invoices_qs = invoices_qs.filter(date_of_payment__year=int(year_filter))
-            if month_filter.isdigit():
-                invoices_qs = invoices_qs.filter(date_of_payment__month=int(month_filter))
-            if day_filter.isdigit():
-                invoices_qs = invoices_qs.filter(date_of_payment__day=int(day_filter))
+        # Paginate combined invoices
+        paginator = Paginator(combined_invoices, 30)
+        page_obj = paginator.get_page(page_number)
 
-            invoices_qs = invoices_qs.order_by(ordering)
+        # Determine "new" invoices (within last 7 days)
+        now = timezone.now().date()
+        new_threshold = now - datetime.timedelta(days=7)
 
-            # Pagination
-            page = request.GET.get('page', 1)
-            paginator = Paginator(invoices_qs, self.paginate_by)
-            try:
-                invoices = paginator.page(page)
-            except PageNotAnInteger:
-                invoices = paginator.page(1)
-            except EmptyPage:
-                invoices = paginator.page(paginator.num_pages)
+        data = []
+        for invoice in page_obj:
+            # Check if invoice is "new"
+            is_new = False
+            if hasattr(invoice, 'date') and invoice.date:
+                invoice_date = invoice.date
+                if isinstance(invoice_date, datetime.datetime):
+                    invoice_date = invoice_date.date()
+                is_new = invoice_date >= new_threshold
 
-            # Log activity
-            ActivityLog.objects.create(
-                user=request.user,
-                activity_type='READ',
-                description='Viewed list of invoices'
-            )
+            # Log each invoice's ID and "new" status
+            logger.debug(f"Invoice ID {invoice.id} - is_new: {is_new}")
 
-        except Exception as e:
-            logger.error(f"Error fetching invoices: {e}")
-            invoices = []
-            error_message = "There was a problem loading invoices."
+            data.append({
+                'id': invoice.id,
+                'awb': invoice.awb.awb if hasattr(invoice, 'awb') and invoice.awb else '',
+                'origin': invoice.origin,
+                'customer': invoice.customer,
+                'date': invoice.date.strftime('%Y-%m-%d') if invoice.date else '',
+                'status': invoice.status,
+                'invoice_detail': getattr(invoice, 'invoice_detail', ''),
+                'is_new': is_new,
+            })
 
-        context = {
-            "invoices": invoices,
-            "sort_by": sort_by,
-            "sort_order": sort_order,
-            "customer_filter": customer_filter,
-            "status_filter": status_filter,
-            "tracking_filter": tracking_filter,
-            "year_filter": year_filter,
-            "month_filter": month_filter,
-            "day_filter": day_filter,
-            "error_message": error_message,
-            "page_obj": invoices,
+        response_data = {
+            'invoices': data,
+            'page': page_obj.number,
+            'num_pages': paginator.num_pages,
+            'has_previous': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
         }
 
-        return render(request, 'invoice/invoice-list.html', context)
+        # Log final response info
+        logger.info(f"Returning page {page_obj.number} with {len(data)} invoices")
 
-    def post(self, request, *args, **kwargs):
-        error_message = None
-        try:
-            invoice_ids = request.POST.getlist("invoice_id")
-            logger.info(f"Received invoice IDs from POST: {invoice_ids}")
-            invoice_ids = list(map(int, invoice_ids))
-            logger.info(f"Converted invoice IDs to int: {invoice_ids}")
-        except (ValueError, TypeError) as e:
-            logger.error(f"Invalid invoice IDs provided: {e}")
-            error_message = "Invalid invoice IDs submitted."
-            invoice_ids = []
-
-        update_status_for_invoices = request.POST.get('status', '').strip()
-        update_detail_for_invoice = request.POST.get('invoice_detail', '').strip()
-
-        logger.info(f"Requested update status: {update_status_for_invoices}")
-        logger.info(f"Requested invoice detail: {update_detail_for_invoice}")
-
-        if not invoice_ids:
-            invoices = Invoice.objects.filter(deleted=False).order_by('id')
-            context = {
-                "invoices": invoices,
-                "error_message": error_message or "No invoices selected.",
-                "sort_by": "id",
-                "sort_order": "asc",
-                "page_obj": invoices,
-            }
-            return render(request, 'invoice/invoice-list.html', context)
-
-        try:
-            invoices = Invoice.objects.filter(id__in=invoice_ids)
-            logger.info(f"Found {invoices.count()} invoices to update")
-
-            eat_timezone = pytz.timezone('Africa/Nairobi')
-            current_time = timezone.now().astimezone(eat_timezone)
-
-            for invoice in invoices:
-                logger.info(f"Updating invoice ID {invoice.id} - current status: {invoice.status}")
-                awb = invoice.awb
-                old_status = invoice.status
-
-                if update_status_for_invoices == 'paid':
-                    invoice.status = 'paid'
-                    invoice.invoice_detail = update_detail_for_invoice
-                    invoice.date_of_payment = current_time
-                    invoice.save()
-
-                    logger.info(f"Invoice ID {invoice.id} marked as paid")
-
-                    if awb:
-                        awb.invoice_generated = False
-                        awb.billed = True
-                        awb.save()
-
-                        MasterStatus.objects.create(
-                            master=awb,
-                            user=request.user,
-                            status='invoice paid',
-                            date=current_time.date(),
-                            time=current_time.time(),
-                            terminal='DAR - Dar es salaam',
-                            note='Invoice marked as paid'
-                        )
-
-                    ActivityLog.objects.create(
-                        user=request.user,
-                        activity_type='UPDATE',
-                        description=f'Marked invoice as paid for Invoice ID: {invoice.id}, AWB: {awb.awb if awb else "N/A"}'
-                    )
-
-                elif update_status_for_invoices == 'credited':
-                    invoice.status = 'credited'
-                    invoice.invoice_detail = update_detail_for_invoice
-                    invoice.date_of_payment = current_time
-                    invoice.save()
-
-                    logger.info(f"Invoice ID {invoice.id} marked as credited")
-
-                    if awb:
-                        awb.billed = True
-                        awb.invoice_generated = False
-                        awb.save()
-
-                        MasterStatus.objects.create(
-                            master=awb,
-                            user=request.user,
-                            status='invoice credited',
-                            date=current_time.date(),
-                            time=current_time.time(),
-                            terminal='DAR - Dar es salaam',
-                            note='Invoice marked as credited'
-                        )
-
-                    ActivityLog.objects.create(
-                        user=request.user,
-                        activity_type='UPDATE',
-                        description=f'Marked invoice as credited for Invoice ID: {invoice.id}, AWB: {awb.awb if awb else "N/A"}'
-                    )
-
-                InvoiceHistory.objects.create(
-                    invoice_id=invoice.id,
-                    awb=awb.awb if awb else None,
-                    customer=invoice.customer,
-                    pcs=awb.awb_pcs if awb else None,
-                    weight_kg=awb.awb_kg if awb else None,
-                    origin=awb.awb_type if awb else None,
-                    total_amount_tzs=invoice.total_amount_tzs,
-                    status=old_status,
-                    action=f'{old_status} -> {invoice.status}',
-                    performed_by=request.user,
-                    note=f'Invoice status changed from {old_status} to {invoice.status}'
-                )
-
-            logger.info(f"Successfully updated all invoices")
-
-            # All invoices updated, redirect back to list page
-            return redirect('invoice-list')
-
-        except Exception as e:
-            logger.error(f"Error updating invoices: {e}")
-            error_message = "There was an error processing your request."
-            invoices = Invoice.objects.filter(deleted=False).order_by('id')
-            context = {
-                "invoices": invoices,
-                "error_message": error_message,
-                "sort_by": "id",
-                "sort_order": "asc",
-                "page_obj": invoices,
-            }
-            return render(request, 'invoice/invoice-list.html', context)
+        return JsonResponse(response_data)
+    
 
 
+class InvoiceListView(View):
+    def get(self, request, *args, **kwargs):
+        # Render the template only; JS will fetch data
+        return render(request, 'invoice/invoice-list.html')
 
 @login_required
 def createInvoice(request, pk):

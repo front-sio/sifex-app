@@ -200,6 +200,9 @@ class Invoice(models.Model):
     
     def get_status(self):
         return self.status
+    
+    class Meta:
+        ordering = ['-date']  # Order by date descending (latest first)
 
 
 class LineItem(models.Model):

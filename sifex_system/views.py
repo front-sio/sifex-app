@@ -1,6 +1,9 @@
 from django.utils.dateparse import parse_date
 from django.conf.urls import handler403, handler404
-from django.http import HttpResponseForbidden, HttpResponseNotFound
+from django.http import HttpResponseForbidden, HttpResponseNotFound, HttpResponseNotAllowed
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 import logging
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views.generic import ListView
@@ -1232,10 +1235,108 @@ class InvoiceDataAPIView(View):
     
 
 
-class InvoiceListView(View):
+
+class InvoiceListView(LoginRequiredMixin, View):
+    login_url = '/account/login/'  # Redirect path for unauthenticated users
+    redirect_field_name = 'next'
+
     def get(self, request, *args, **kwargs):
-        # Render the template only; JS will fetch data
         return render(request, 'invoice/invoice-list.html')
+
+    def post(self, request, *args, **kwargs):
+        invoice_ids = request.POST.getlist("invoice_id")
+        if not invoice_ids:
+            return HttpResponseBadRequest("No invoice IDs provided.")
+
+        try:
+            invoice_ids = list(map(int, invoice_ids))
+        except ValueError:
+            return HttpResponseBadRequest("Invalid invoice IDs.")
+
+        update_status = request.POST.get('status')
+        update_detail = request.POST.get('invoice_detail', '').strip()
+
+        if update_status not in ['paid', 'credited']:
+            return HttpResponseBadRequest("Invalid status value.")
+
+        invoices = Invoice.objects.filter(id__in=invoice_ids)
+
+        for invoice in invoices:
+            awb = invoice.awb
+            old_status = invoice.status
+
+            # Apply status logic
+            if update_status == 'paid':
+                invoice.status = 'paid'
+                invoice.invoice_detail = update_detail
+                invoice.date_of_payment = timezone_now()
+
+                awb.invoice_generated = False
+                awb.billed = True
+
+                MasterStatus.objects.create(
+                    master=awb,
+                    user=request.user,
+                    status='invoice paid',
+                    date=timezone_now().date(),
+                    time=timezone_now().time(),
+                    terminal='DAR - Dar es salaam',
+                    note='Invoice marked as paid'
+                )
+
+                ActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='UPDATE',
+                    description=f'Marked invoice as paid for Invoice ID: {invoice.id}, AWB: {awb.awb}'
+                )
+
+            elif update_status == 'credited':
+                invoice.status = 'credited'
+                invoice.invoice_detail = update_detail
+                invoice.date_of_payment = timezone_now()
+
+                awb.invoice_generated = False
+                awb.billed = True
+
+                MasterStatus.objects.create(
+                    master=awb,
+                    user=request.user,
+                    status='invoice credited',
+                    date=timezone_now().date(),
+                    time=timezone_now().time(),
+                    terminal='DAR - Dar es salaam',
+                    note='Invoice marked as credited'
+                )
+
+                ActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='UPDATE',
+                    description=f'Marked invoice as credited for Invoice ID: {invoice.id}, AWB: {awb.awb}'
+                )
+
+            # Save invoice history
+            InvoiceHistory.objects.create(
+                invoice_id=invoice.id,
+                awb=awb.awb,
+                customer=invoice.customer,
+                pcs=awb.awb_pcs,
+                weight_kg=awb.awb_kg,
+                origin=awb.awb_type,
+                total_amount_tzs=invoice.total_amount_tzs,
+                status=old_status,
+                action=f'{old_status} -> {invoice.status}',
+                performed_by=request.user,
+                note=f'Invoice status changed from {old_status} to {invoice.status}'
+            )
+
+            awb.save()
+            invoice.save()
+
+        return redirect('invoice-list')
+
+
+
+
 
 @login_required
 def createInvoice(request, pk):
@@ -1438,28 +1539,40 @@ def delete_awb(request, id):
     return redirect('accept_console')
 
 
-@login_required
-def delete_invoice(request, id):
-    invoice = get_object_or_404(Invoice, pk=id)
-    awb = invoice.awb
-    invoice.deleted = True
-    invoice.save()
-    
-    if awb.billed:
-        awb.billed = False
-        awb.bill = True
-    elif awb.invoice_generated:
-        awb.invoice_generated = False
-        awb.bill = True
-    awb.save()
 
-    ActivityLog.objects.create(
-        user=request.user,
-        activity_type='DELETE',
-        description=f'Marked Invoice ID: {invoice.id}, Customer: {invoice.customer} as deleted'
-    )
-    messages.success(request, f'Invoice {invoice.customer} marked as deleted successfully')
-    return redirect('invoice-list')
+@method_decorator(csrf_exempt, name='dispatch')
+class DeleteInvoiceView(LoginRequiredMixin, View):
+    login_url = '/accounts/login/'  
+    redirect_field_name = 'next'
+
+    def delete(self, request, id, *args, **kwargs):
+        invoice = get_object_or_404(Invoice, pk=id)
+        invoice.deleted = True
+        invoice.save()
+
+        awb = invoice.awb
+        if awb.billed:
+            awb.billed = False
+            awb.bill = True
+        elif awb.invoice_generated:
+            awb.invoice_generated = False
+            awb.bill = True
+        awb.save()
+
+        ActivityLog.objects.create(
+            user=request.user,
+            activity_type='DELETE',
+            description=f'Marked Invoice ID: {invoice.id}, Customer: {invoice.customer} as deleted'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Invoice {invoice.customer} marked as deleted successfully'
+        })
+
+    def get(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed(['DELETE'])
+
 
 
 @login_required

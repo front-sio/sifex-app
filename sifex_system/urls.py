@@ -14,13 +14,7 @@ urlpatterns = [
 
     path('awb-details/<int:awb_id>/', awb_details, name='awb_details'),
 
-    # printing
-    path('print_label/<int:pk>/', print_label, name='print_label'),
-    path('invoice/pdf/<int:invoice_id>/', generate_invoice_pdf, name='invoice_pdf'),
-    path('invoice_detail/<int:invoice_id>/', invoice_detail, name='invoice_detail'),
-
-    path('generate_pdf/', generate_pdf, name='generate_pdf'),
-    path('generate_spreadsheet/', generate_spreadsheet, name='generate_spreadsheet'),
+  
 
     # search
     path('search/', search_parcel, name='search_parcel'),
@@ -75,7 +69,7 @@ urlpatterns = [
     path('save_awb/', on_edit_add_parcel, name="on_edit_save_awb"),
     path('export/pdf/<int:pk>/', export_masterawb_pdf_label, name="export-master-awb-pdf-label"),
     path('delete_awb/<int:id>/', delete_awb, name="delete-awb"),
-    path('delete_invoice/<int:id>/', delete_invoice, name="delete-invoice"),
+    path('delete_invoice/<int:id>/', DeleteInvoiceView.as_view(), name="delete-invoice"),
 
     # sales report
 
@@ -93,8 +87,15 @@ urlpatterns = [
     path('invoices/', InvoiceListView.as_view(), name="invoice-list"),
     path('api/invoices/', InvoiceDataAPIView.as_view(), name='invoice-data-api'),
     path('create/<int:pk>/', createInvoice, name="invoice-create"),
-    path('invoice-detail/<id>', view_PDF, name='invoice-detail'),
     path('generate-invoice/', invoice_generation, name="generate-invoice"),
+
+      # printing
+    path('print_label/<int:pk>/', print_label, name='print_label'),
+    path('invoice/pdf/<int:invoice_id>/', generate_invoice_pdf, name='invoice_pdf'),
+    path('invoice_detail/<int:invoice_id>/', invoice_detail, name='invoice_detail'),
+
+    path('generate_pdf/', generate_pdf, name='generate_pdf'),
+    path('generate_spreadsheet/', generate_spreadsheet, name='generate_spreadsheet'),
 
     #CUSTOMER APP
     path('add-customer/', add_customer, name="add-customer"),

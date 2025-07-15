@@ -191,6 +191,6 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 
 SECURE_SSL_REDIRECT = False
-LOGIN_URL = '/account/login/'
+LOGIN_URL = '/accounts/login/'
 
 

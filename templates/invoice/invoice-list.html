@@ -1,161 +1,184 @@
 {% extends 'system/app/index.html' %}
 {% load static %}
+{% load widget_tweaks %}
 
-{% block title %}Invoices{% endblock %}
+{% block title %}Invoices List{% endblock %}
+{% block page %}Invoices List{% endblock %}
+{% block slogan %}List of Invoices{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
 <style>
-.pagination-year {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 10px;
-}
-.pagination-year a.page-link {
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-decoration: none;
-    color: #007bff;
-}
-.pagination-year a.page-link.active {
-    background-color: #007bff;
-    color: #fff;
-    border-color: #007bff;
-}
-.pagination-container ul.pagination {
-    flex-wrap: wrap;
-    gap: 4px;
-}
+    .hide-accept-form, .hide-response-form, .hide-add-form {
+        display: none;
+    }
+
+    .pagination-year {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+    .pagination-year a.page-link {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #007bff;
+        transition: all 0.2s;
+    }
+    .pagination-year a.page-link.active {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+    .pagination-year a.page-link:hover {
+        background-color: #e9ecef;
+    }
+
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .table-top {
+        margin-bottom: 10px;
+    }
+
+    .delete-selected-btn {
+        margin-top: 10px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container my-3">
-  <div class="card">
-    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-3">
-      <h5 class="mb-0">Invoices</h5>
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
 
-      <!-- Year filter -->
-      <div class="pagination-year">
-        {% for y in available_years %}
-          {% if y == selected_year %}
-            <a href="?year={{ y }}{% if selected_status %}&status={{ selected_status }}{% endif %}&search={{ search_query }}" class="page-link active">{{ y }}</a>
-          {% else %}
-            <a href="?year={{ y }}{% if selected_status %}&status={{ selected_status }}{% endif %}&search={{ search_query }}" class="page-link">{{ y }}</a>
-          {% endif %}
-        {% endfor %}
-        {% if selected_year %}
-          <a href="{% url 'invoice-list' %}" class="page-link">Reset</a>
-        {% endif %}
-      </div>
+<div class="card">
+    <div class="card-body">
 
-      <!-- Filters -->
-      <form method="get" class="d-flex gap-2 align-items-center">
-        <input type="hidden" name="year" value="{{ selected_year }}">
-        <input type="text" name="search" class="form-control" placeholder="Search AWB / Customer" value="{{ search_query }}">
-        <select name="status" class="form-select">
-          <option value="">All Statuses</option>
-          <option value="paid" {% if selected_status == "paid" %}selected{% endif %}>Paid</option>
-          <option value="unpaid" {% if selected_status == "unpaid" %}selected{% endif %}>Unpaid</option>
-          <option value="credited" {% if selected_status == "credited" %}selected{% endif %}>Credited</option>
-        </select>
-        <button type="submit" class="btn btn-primary">Filter</button>
-      </form>
-    </div>
-
-    <div class="card-body p-0">
-      <form method="post">
-        {% csrf_token %}
-        <div class="table-responsive p-3">
-          <table class="table table-striped table-hover mb-0">
-            <thead class="table-light">
-              <tr>
-                <th><input type="checkbox" id="selectAll"></th>
-                <th>#ID</th>
-                <th>Tracking Number</th>
-                <th>Origin</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for invoice in invoices %}
-              <tr>
-                <td><input type="checkbox" name="invoice_id" value="{{ invoice.id }}"></td>
-                <td>#{{ invoice.id }}</td>
-                <td>{{ invoice.awb.awb }}</td>
-                <td>{{ invoice.awb.awb_type }}</td>
-                <td>{{ invoice.customer }}</td>
-                <td>{{ invoice.date|date:"Y-m-d" }}</td>
-                <td>{{ invoice.status|title }}</td>
-                <td>
-                  <a href="{% url 'invoice-detail' invoice.id %}" class="btn btn-sm btn-success text-white">View</a>
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="8" class="text-center">No invoices found.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="p-3">
-          <button type="submit" class="btn btn-danger">Delete Selected</button>
-        </div>
-      </form>
-
-      <!-- Pagination -->
-      <div class="p-3 d-flex justify-content-center pagination-container">
-        <nav>
-          <ul class="pagination mb-0">
-            {% if invoices.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?year={{ selected_year }}{% if selected_status %}&status={{ selected_status }}{% endif %}&search={{ search_query }}&page={{ invoices.previous_page_number }}">Previous</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">Previous</span></li>
-            {% endif %}
-
-            {% for num in invoices.paginator.page_range %}
-              {% if num > invoices.number|add:'-3' and num < invoices.number|add:'3' %}
-                {% if num == invoices.number %}
-                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        <!-- Year Filter (Pagination Flex) -->
+        <div class="pagination-year mb-3">
+            {% for y in available_years %}
+                {% if y == selected_year %}
+                    <a href="?year={{ y }}" class="page-link active">{{ y }}</a>
                 {% else %}
-                  <li class="page-item">
-                    <a class="page-link" href="?year={{ selected_year }}{% if selected_status %}&status={{ selected_status }}{% endif %}&search={{ search_query }}&page={{ num }}">{{ num }}</a>
-                  </li>
+                    <a href="?year={{ y }}" class="page-link">{{ y }}</a>
                 {% endif %}
-              {% elif num == 1 or num == invoices.paginator.num_pages %}
-                <li class="page-item"><a class="page-link" href="?year={{ selected_year }}{% if selected_status %}&status={{ selected_status }}{% endif %}&search={{ search_query }}&page={{ num }}">{{ num }}</a></li>
-              {% elif num == invoices.number|add:'-3' or num == invoices.number|add:'3' %}
-                <li class="page-item disabled"><span class="page-link">...</span></li>
-              {% endif %}
             {% endfor %}
-
-            {% if invoices.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?year={{ selected_year }}{% if selected_status %}&status={{ selected_status }}{% endif %}&search={{ search_query }}&page={{ invoices.next_page_number }}">Next</a>
-              </li>
-            {% else %}
-              <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% if selected_year %}
+                <a href="{% url 'invoice-list' %}" class="page-link">Reset</a>
             {% endif %}
-          </ul>
-        </nav>
+        </div>
+
+        <!-- AWB Table -->
+        <div class="table-responsive mt-3">
+            <table class="table datanew table-hover">
+                <thead>
+                    <tr>
+                        <th><label class="checkboxs"><input type="checkbox" id="select-all"><span class="checkmarks"></span></label></th>
+                        <th>TRACKING NUMBER</th>
+                        <th>ORIGIN</th>
+                        <th>CUSTOMER</th>
+                        <th>DATE</th>
+                        <th>STATUS</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>
+                            <label class="checkboxs">
+                                <input type="checkbox" name="invoice_id" value="{{ invoice.id }}" class="invoice-checkbox">
+                                <span class="checkmarks"></span>
+                            </label>
+                        </td>
+                        <td>{{ invoice.awb.awb }}</td>
+                        <td>{{ invoice.awb.awb_type }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                        <td>{{ invoice.status|title }}</td>
+                        <td>
+                            <a class="me-3" href="{% url 'invoice-detail' invoice.id %}">VIEW </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center">No AWBs found for this year.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Delete Selected Button -->
+        <button class="btn btn-danger delete-selected-btn" id="delete-selected-btn">Delete Selected</button>
+
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this invoice(s)?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="delete-form" method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="invoice_ids" id="invoice-ids">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-document.getElementById('selectAll').addEventListener('change', function(){
-  const checkboxes = document.querySelectorAll('input[name="invoice_id"]');
-  checkboxes.forEach(cb => cb.checked = this.checked);
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#id_date", { dateFormat: "Y-m-d", allowInput: true });
+    flatpickr("#id_time", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, allowInput: true });
+
+    // Select All
+    const selectAll = document.getElementById('select-all');
+    selectAll.addEventListener('change', function() {
+        document.querySelectorAll('.invoice-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+
+    // Delete selected button
+    const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const invoiceIdsInput = document.getElementById('invoice-ids');
+    const deleteForm = document.getElementById('delete-form');
+
+    deleteSelectedBtn.addEventListener('click', function() {
+        const selected = Array.from(document.querySelectorAll('.invoice-checkbox:checked')).map(cb => cb.value);
+        if(selected.length === 0) {
+            alert('Please select at least one invoice to delete.');
+            return;
+        }
+        invoiceIdsInput.value = selected.join(',');
+        deleteForm.action = "{% url 'delete-invoice' 0 %}".replace('0', selected.join(','));
+        deleteModal.show();
+    });
+
+    // Delete single invoice
+    document.querySelectorAll('.delete-single-btn').forEach(btn => {
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const id = this.dataset.id;
+            invoiceIdsInput.value = id;
+            deleteForm.action = "{% url 'delete-invoice' 0 %}".replace('0', id);
+            deleteModal.show();
+        });
+    });
 });
 </script>
 {% endblock %}

@@ -1482,28 +1482,41 @@ class DeleteInvoiceView(LoginRequiredMixin, View):
     redirect_field_name = 'next'
 
     def delete(self, request, id, *args, **kwargs):
-        invoice = get_object_or_404(Invoice, pk=id)
-        invoice.deleted = True
-        invoice.save()
+        """
+        Handles deletion of single or multiple invoices.
+        'id' can be a single ID or comma-separated IDs.
+        """
+        invoice_ids = id.split(',')  # split multiple IDs if provided
+        deleted_count = 0
 
-        awb = invoice.awb
-        if awb.billed:
-            awb.billed = False
-            awb.bill = True
-        elif awb.invoice_generated:
-            awb.invoice_generated = False
-            awb.bill = True
-        awb.save()
+        for inv_id in invoice_ids:
+            try:
+                invoice = Invoice.objects.get(pk=inv_id)
+                invoice.deleted = True
+                invoice.save()
 
-        ActivityLog.objects.create(
-            user=request.user,
-            activity_type='DELETE',
-            description=f'Marked Invoice ID: {invoice.id}, Customer: {invoice.customer} as deleted'
-        )
+                awb = invoice.awb
+                if awb.billed:
+                    awb.billed = False
+                    awb.bill = True
+                elif awb.invoice_generated:
+                    awb.invoice_generated = False
+                    awb.bill = True
+                awb.save()
+
+                ActivityLog.objects.create(
+                    user=request.user,
+                    activity_type='DELETE',
+                    description=f'Marked Invoice ID: {invoice.id}, Customer: {invoice.customer} as deleted'
+                )
+                deleted_count += 1
+
+            except Invoice.DoesNotExist:
+                continue  # skip invalid IDs
 
         return JsonResponse({
             'success': True,
-            'message': f'Invoice {invoice.customer} marked as deleted successfully'
+            'message': f'{deleted_count} invoice(s) marked as deleted successfully.'
         })
 
     def get(self, request, *args, **kwargs):

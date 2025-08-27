@@ -85,14 +85,13 @@ urlpatterns = [
     path('activity-logs/', activity_log_list, name='activity_log_list'),
 
     path('invoices/', InvoiceListView.as_view(), name="invoice-list"),
-    path('api/invoices/', InvoiceDataAPIView.as_view(), name='invoice-data-api'),
     path('create/<int:pk>/', createInvoice, name="invoice-create"),
     path('generate-invoice/', invoice_generation, name="generate-invoice"),
 
       # printing
     path('print_label/<int:pk>/', print_label, name='print_label'),
     path('invoice/pdf/<int:invoice_id>/', generate_invoice_pdf, name='invoice_pdf'),
-    path('invoice_detail/<int:invoice_id>/', invoice_detail, name='invoice_detail'),
+    path('invoice_detail/<int:invoice_id>/', invoice_detail, name='invoice-detail'),
 
     path('generate_pdf/', generate_pdf, name='generate_pdf'),
     path('generate_spreadsheet/', generate_spreadsheet, name='generate_spreadsheet'),

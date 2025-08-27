@@ -35,7 +35,7 @@ import pytz
 from core.models import *
 from .models import Invoice, LineItem, Customer, Attendance, Staff
 import pdfkit
-
+from django.core.paginator import Paginator
 
 # for printing
 import os
@@ -65,6 +65,14 @@ def shorten_string(text, max_length):
     if len(text) > max_length:
         return text[:max_length - 3] + "..."
     return text
+
+
+
+def paginate_queryset(request, queryset, per_page=50):
+    """Helper function for pagination."""
+    paginator = Paginator(queryset, per_page)
+    page_number = request.GET.get("page")
+    return paginator.get_page(page_number)
 
 @login_required
 def register_customer(request):
@@ -99,69 +107,136 @@ def console(request):
     return render(request, 'system/console/index.html', context)
 
 @login_required
-def accept_console(request):
-    pcs = Masterawb.objects.filter(accepted=True, deleted=False,)
-    slave_pcs = Slaveawb.objects.filter(accepted=True).order_by('-date_received')
+def accept_console(request, year=None):
+    """
+    Display accepted parcels filtered by year, with pagination.
+    Default year is the current year if none is provided.
+    """
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
+
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            accepted=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        accepted=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
     context = {
-        'pcs': pcs,
-        'slave_pcs': slave_pcs,
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
     }
-    return render(request, 'system/parcels/accept_parcel/index.html', context)
+    return render(request, "system/parcels/accept_parcel/index.html", context)
+
 
 @login_required
-def accept_loaded_console(request):
-    pcs = Masterawb.objects.filter(loaded=True).order_by('-date_received')
-    context = {
-        'pcs': pcs,
-    }
+def accept_loaded_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        loaded=True,
+        date_received__year=year
+    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+
+    context = {'pcs': paginate_queryset(request, pcs)}
     return render(request, 'system/parcels/accept_parcel/loaded.html', context)
 
+
 @login_required
-def accept_manifested_console(request):
-    pcs = Masterawb.objects.filter(manifested=True, deleted=False,).order_by('-date_received')
-    context = {
-        'pcs': pcs,
-    }
+def accept_manifested_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        manifested=True,
+        deleted=False,
+        date_received__year=year
+    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+
+    context = {'pcs': paginate_queryset(request, pcs)}
     return render(request, 'system/parcels/accept_parcel/manifested.html', context)
 
+
 @login_required
-def accept_arrived_console(request):
-    pcs = Masterawb.objects.filter(arrived=True).order_by('-date_received')
-    context = {
-        'pcs': pcs,
-    }
+def accept_arrived_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        arrived=True,
+        date_received__year=year
+    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+
+    context = {'pcs': paginate_queryset(request, pcs)}
     return render(request, 'system/parcels/importer/arrived.html', context)
 
+
 @login_required
-def accept_underclearance_console(request):
-    pcs = Masterawb.objects.filter(under_clearance=True, deleted=False,).order_by('-date_received')
-    context = {
-        'pcs': pcs,
-    }
+def accept_underclearance_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        under_clearance=True,
+        deleted=False,
+        date_received__year=year
+    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+
+    context = {'pcs': paginate_queryset(request, pcs)}
     return render(request, 'system/parcels/importer/underclearance.html', context)
 
+
 @login_required
-def accept_release_console(request):
-    pcs = Masterawb.objects.filter(released=True, deleted=False,).order_by('-date_received')
-    context = {
-        'pcs': pcs,
-    }
+def accept_release_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        released=True,
+        deleted=False,
+        date_received__year=year
+    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+
+    context = {'pcs': paginate_queryset(request, pcs)}
     return render(request, 'system/parcels/importer/released.html', context)
 
-@login_required
-def accept_delivered_console(request):
-    pcs = Masterawb.objects.filter(billed=True, deleted=False,).order_by('-date_received').prefetch_related('awb_locations')
-    context = {
-        'pcs': pcs,
-    }
-    return render(request, 'system/parcels/importer/delivered.html', context)
 
 @login_required
-def accept_pod_console(request):
-    pcs = Masterawb.objects.filter(delivered=True, deleted=False,)
-    context = {
-        'pcs': pcs,
-    }
+def accept_delivered_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        billed=True,
+        deleted=False,
+        date_received__year=year
+    ).prefetch_related("awb_locations") \
+     .only("id", "awb", "receiver_name", "date_received") \
+     .order_by('-date_received').refresh_related("awb_locations")
+
+    context = {'pcs': paginate_queryset(request, pcs)}
+    return render(request, 'system/parcels/importer/delivered.html', context)
+
+
+@login_required
+def accept_pod_console(request, year=None):
+    year = year or now().year
+    pcs = Masterawb.objects.filter(
+        delivered=True,
+        deleted=False,
+        date_received__year=year
+    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+
+    context = {'pcs': paginate_queryset(request, pcs)}
     return render(request, 'system/parcels/importer/pod.html', context)
 
 @login_required
@@ -1142,197 +1217,58 @@ def invoice_detail(request, invoice_id):
 
 
 
-class InvoiceDataAPIView(View):
+class InvoiceListView(View):
     def get(self, request):
-        # Get parameters with default values
-        page_number = int(request.GET.get('page', 1))
-        customer_filter = request.GET.get('customer', '').strip()
-        status_filter = request.GET.get('status', '').strip()
-        tracking_filter = request.GET.get('tracking', '').strip()
+        # Filters
+        selected_year = request.GET.get('year')
+        selected_status = request.GET.get('status', '')
+        search_query = request.GET.get('search', '').strip()
 
-        # Base queryset: filter out deleted invoices
-        invoices_qs = Invoice.objects.filter(deleted=False)
-
-        # Log the initial queryset count
-        logger.info(f"Initial invoice count: {invoices_qs.count()}")
-
-        # Apply customer filter if provided
-        if customer_filter:
-            invoices_qs = invoices_qs.filter(customer__icontains=customer_filter)
-            logger.info(f"Filtered by customer '{customer_filter}': {invoices_qs.count()} remaining")
-
-        # Apply status filter if provided
-        if status_filter:
-            if status_filter == 'unpaid':
-                # Exclude paid and credited
-                invoices_qs = invoices_qs.exclude(status__in=['paid', 'credited'])
-                logger.info(f"Filtered by unpaid status: {invoices_qs.count()} remaining")
-            else:
-                invoices_qs = invoices_qs.filter(status=status_filter)
-                logger.info(f"Filtered by status '{status_filter}': {invoices_qs.count()} remaining")
-
-        # Apply tracking filter
-        if tracking_filter:
-            invoices_qs = invoices_qs.filter(awb__awb__icontains=tracking_filter)
-            logger.info(f"Filtered by tracking '{tracking_filter}': {invoices_qs.count()} remaining")
-
-        # Order by date descending
-        invoices_qs = invoices_qs.order_by('-date')
-
-        # Separate unpaid invoices to display first
-        unpaid_invoices = list(invoices_qs.filter(status='unpaid'))
-        other_invoices = list(invoices_qs.exclude(status='unpaid'))
-        combined_invoices = unpaid_invoices + other_invoices
-
-        # Log total invoices after reordering
-        logger.info(f"Total combined invoices for pagination: {len(combined_invoices)}")
-
-        # Paginate combined invoices
-        from django.core.paginator import Paginator
-        paginator = Paginator(combined_invoices, 30)
-        page_obj = paginator.get_page(page_number)
-
-        # Determine "new" invoices (within last 7 days)
-        now = timezone.now().date()
-        new_threshold = now - datetime.timedelta(days=7)
-
-        data = []
-        for invoice in page_obj:
-            # Check if invoice is "new"
-            is_new = False
-            if hasattr(invoice, 'date') and invoice.date:
-                invoice_date = invoice.date
-                if isinstance(invoice_date, datetime.datetime):
-                    invoice_date = invoice_date.date()
-                is_new = invoice_date >= new_threshold
-
-            # Log each invoice's ID and "new" status
-            logger.debug(f"Invoice ID {invoice.id} - is_new: {is_new}")
-
-            data.append({
-                'id': invoice.id,
-                'awb': invoice.awb.awb if hasattr(invoice, 'awb') and invoice.awb else '',
-                'origin': invoice.origin,
-                'customer': invoice.customer,
-                'date': invoice.date.strftime('%Y-%m-%d') if invoice.date else '',
-                'status': invoice.status,
-                'invoice_detail': getattr(invoice, 'invoice_detail', ''),
-                'is_new': is_new,
-            })
-
-        response_data = {
-            'invoices': data,
-            'page': page_obj.number,
-            'num_pages': paginator.num_pages,
-            'has_previous': page_obj.has_previous(),
-            'has_next': page_obj.has_next(),
-            'total_count': paginator.count,
-        }
-
-        # Log final response info
-        logger.info(f"Returning page {page_obj.number} with {len(data)} invoices")
-        return JsonResponse(response_data)
-    
-
-
-
-class InvoiceListView(LoginRequiredMixin, View):
-    login_url = '/account/login/'  # Redirect path for unauthenticated users
-    redirect_field_name = 'next'
-
-    def get(self, request, *args, **kwargs):
-        return render(request, 'invoice/invoice-list.html')
-
-    def post(self, request, *args, **kwargs):
-        invoice_ids = request.POST.getlist("invoice_id")
-        if not invoice_ids:
-            return HttpResponseBadRequest("No invoice IDs provided.")
-
+        # Default to current year
+        now = timezone.now()
         try:
-            invoice_ids = list(map(int, invoice_ids))
-        except ValueError:
-            return HttpResponseBadRequest("Invalid invoice IDs.")
+            selected_year = int(selected_year)
+        except (TypeError, ValueError):
+            selected_year = now.year
 
-        update_status = request.POST.get('status')
-        update_detail = request.POST.get('invoice_detail', '').strip()
+        # Base queryset
+        invoices = Invoice.objects.select_related('awb').filter(date__year=selected_year).order_by('-date')
 
-        if update_status not in ['paid', 'credited']:
-            return HttpResponseBadRequest("Invalid status value.")
+        # Status filter
+        if selected_status:
+            invoices = invoices.filter(status=selected_status)
 
-        invoices = Invoice.objects.filter(id__in=invoice_ids)
-
-        for invoice in invoices:
-            awb = invoice.awb
-            old_status = invoice.status
-
-            # Apply status logic
-            if update_status == 'paid':
-                invoice.status = 'paid'
-                invoice.invoice_detail = update_detail
-                invoice.date_of_payment = timezone_now()
-
-                awb.invoice_generated = False
-                awb.billed = True
-
-                MasterStatus.objects.create(
-                    master=awb,
-                    user=request.user,
-                    status='invoice paid',
-                    date=timezone_now().date(),
-                    time=timezone_now().time(),
-                    terminal='DAR - Dar es salaam',
-                    note='Invoice marked as paid'
-                )
-
-                ActivityLog.objects.create(
-                    user=request.user,
-                    activity_type='UPDATE',
-                    description=f'Marked invoice as paid for Invoice ID: {invoice.id}, AWB: {awb.awb}'
-                )
-
-            elif update_status == 'credited':
-                invoice.status = 'credited'
-                invoice.invoice_detail = update_detail
-                invoice.date_of_payment = timezone_now()
-
-                awb.invoice_generated = False
-                awb.billed = True
-
-                MasterStatus.objects.create(
-                    master=awb,
-                    user=request.user,
-                    status='invoice credited',
-                    date=timezone_now().date(),
-                    time=timezone_now().time(),
-                    terminal='DAR - Dar es salaam',
-                    note='Invoice marked as credited'
-                )
-
-                ActivityLog.objects.create(
-                    user=request.user,
-                    activity_type='UPDATE',
-                    description=f'Marked invoice as credited for Invoice ID: {invoice.id}, AWB: {awb.awb}'
-                )
-
-            # Save invoice history
-            InvoiceHistory.objects.create(
-                invoice_id=invoice.id,
-                awb=awb.awb,
-                customer=invoice.customer,
-                pcs=awb.awb_pcs,
-                weight_kg=awb.awb_kg,
-                origin=awb.awb_type,
-                total_amount_tzs=invoice.total_amount_tzs,
-                status=old_status,
-                action=f'{old_status} -> {invoice.status}',
-                performed_by=request.user,
-                note=f'Invoice status changed from {old_status} to {invoice.status}'
+        # Search filter
+        if search_query:
+            invoices = invoices.filter(
+                Q(awb__awb__icontains=search_query) |
+                Q(customer__icontains=search_query)
             )
 
-            awb.save()
-            invoice.save()
+        # Pagination
+        page_number = request.GET.get('page', 1)
+        paginator = Paginator(invoices, 30)
+        page_obj = paginator.get_page(page_number)
 
-        return redirect('invoice-list')
+        # Get available years (distinct)
+        years_qs = Invoice.objects.dates('date', 'year', order='DESC')
+        available_years = [d.year for d in years_qs]
+
+        context = {
+            'invoices': page_obj,
+            'available_years': available_years,
+            'selected_year': selected_year,
+            'selected_status': selected_status,
+            'search_query': search_query,
+        }
+        return render(request, 'invoice/invoice-list.html', context)
+
+    def post(self, request):
+        # Bulk delete
+        invoice_ids = request.POST.getlist("invoice_id")
+        if invoice_ids:
+            Invoice.objects.filter(id__in=invoice_ids).delete()
+        return redirect(request.get_full_path())
 
 
 
@@ -1958,7 +1894,7 @@ def delivered_report(request):
     })
 
 
-@login_required
+
 @login_required
 def undelivered_report(request):
     pcs = None

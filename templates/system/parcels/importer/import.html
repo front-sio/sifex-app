@@ -1,201 +1,204 @@
 {% extends 'system/app/index.html' %}
 {% load static %}
 {% load widget_tweaks %}
-{% block title %}Departed awb{% endblock %}
 
-{% block page %}departed awb{% endblock page %}
-{% block slogan %}list of departed awb{% endblock slogan %} 
+{% block title %}Imported AWB{% endblock %}
+{% block page %}Imported AWB{% endblock %}
+{% block slogan %}List of  Imported AWB{% endblock %}
 
 {% block style %}
-    <style>
-        .hide-accept-form {
-            display: none;
-        }
-        .hide-response-form {
-            display: none;
-        }
-        .hide-add-form {
-            display: none;
-        }
-    </style>
+<style>
+    .hide-accept-form, .hide-response-form, .hide-add-form {
+        display: none;
+    }
+
+    /* Year filter pagination style */
+    .pagination-year {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+    .pagination-year a.page-link {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #007bff;
+        transition: all 0.2s;
+    }
+    .pagination-year a.page-link.active {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+    .pagination-year a.page-link:hover {
+        background-color: #e9ecef;
+    }
+
+    /* Table styling improvements */
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .table-top {
+        margin-bottom: 10px;
+    }
+</style>
 {% endblock %}
+
 {% block content %}
 <div class="page-header">
-    <div class="page-title">
-
-    </div>
+    <div class="page-title"></div>
     <div class="page-btn">
-        {% if request.user.acceptance %}
-            <a href="{% url 'accept_form_view' %}" class="btn btn-added"><img src="{% static 'system/assets/img/icons/plus.svg' %}" alt="img" class="me-1">new awb</a>
+        {% if request.user.acceptance or request.user.is_superuser or request.user.management %}
+            <a href="{% url 'accept_form_view' %}" class="btn btn-added">
+                <img src="{% static 'system/assets/img/icons/plus.svg' %}" alt="img" class="me-1">New AWB
+            </a>
         {% endif %}
     </div>
 </div>
 
 <div class="card">
     <div class="card-body">
-    <div class="table-top">
-    <div class="search-set">
-    <div class="search-path">
-    <a class="btn btn-filter" id="filter_search">
-        <img src="{% static 'system/assets/img/icons/filter.svg' %}" alt="img">
-        <span><img src="{% static 'system/assets/img/icons/closes.svg' %}" alt="img"></span>
-    </a>
-    </div>
-    <div class="search-input">
-    <a class="btn btn-searchset"><img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img"></a>
-    </div>
-        {% include 'system/partials/_messages.html' %}
-    </div>
-    <div class="wordset">'
-    <ul>
-    <li>
-    <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="{% static 'system/assets/img/icons/pdf.svg' %}" alt="img"></a>
-    </li>
-    <li>
-    <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="{% static 'system/assets/img/icons/excel.svg' %}" alt="img"></a>
-    </li>
-    <li>
-    <a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img"></a>
-    </li>
-    </ul>
-    </div>
-    </div>
-    
-    <div class="card mb-0" id="filter_inputs">
-    <div class="card-body pb-0">
-    <div class="row">
-        <div class="col-md-12 col-lg-12 col-sm-12 d-flex justify-content-between">
-            <div class="form-group">
-                <select name="status" id="id_status" class="form-control">
-                    <option value="arrived" class="form-control">arrival</option>
-                </select>
-                
-            </div>
-            <div class="form-group">
-                <input type="date" id="id_date" name="date" placeholder="Date" class="form-control">
-            </div>
-            <div class="form-group">
-                <input type="time" name="time" id="id_time" placeholder="Time" class="form-control">
-            </div>
 
-            <div class="form-group">
-                <input name="note" id="id_note"  placeholder="Note" class="form-control">
-            </div>
-            <div class="form-group">
-                <select name="terminal" id="id_terminal" class="form-control">
-                    <option value="CAN - Guanzhou">CAN - Guanzhou</option>
-                    <option value="HKG - HongKong">HKG - HongKong</option>
-                    <option value="DAR - Dar es salaam">DAR - Dar es salaam</option>
-                    <option value="DXB - Dubai">DXB - Dubai</option>
-                    <option value="NBO - Nairobi">NBO - Nairobi</option>
-                    <option value="SHJ - Sharjah">SHJ - Sharjah</option>
-                    <option value="JNB - Johanesburg">JNB - Johanesburg</option>
-                    <option value="MCT - Muscat">MCT - Muscat</option>
-                    <option value="BOM - Mumbai">BOM - Mumbai</option>
-                    <option value="ADD - Addis Ababa">ADD - Addis Ababa</option>
-                    <option value="ZNZ - Zanzibar">ZNZ - Zanzibar</option>
-                </select>
-                
-            </div>
-            <div class="update-btn ml-3">
-                <button type="submit" id="arrived_btn" class="btn btn-danger add_arrived_status" >save</button>
+        <!-- Year Filter (Pagination Flex) -->
+        <div class="pagination-year mb-3">
+            {% for y in available_years %}
+                {% if y == selected_year %}
+                    <a href="?year={{ y }}" class="page-link active">{{ y }}</a>
+                {% else %}
+                    <a href="?year={{ y }}" class="page-link">{{ y }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if selected_year %}
+                <a href="{% url 'accept_console' %}" class="page-link">Reset</a>
+            {% endif %}
+        </div>
+
+        <div class="table-top d-flex justify-content-between align-items-center flex-wrap">
+            <div class="search-set d-flex align-items-center gap-2 flex-wrap">
+                <div class="search-path">
+                    <a class="btn btn-filter" id="filter_search">
+                        <img src="{% static 'system/assets/img/icons/filter.svg' %}" alt="img">
+                        <span><img src="{% static 'system/assets/img/icons/closes.svg' %}" alt="img"></span>
+                    </a>
+                </div>
+                <div class="search-input">
+                    <a class="btn btn-searchset"><img src="{% static 'system/assets/img/icons/search-white.svg' %}" alt="img"></a>
+                </div>
+                {% include 'system/partials/_messages.html' %}
             </div>
         </div>
-    </div>
-    </div>
-    </div>
-    
-    <div class="table-responsive">
-    <table class="table  datanew">
-    <thead>
-    <tr>
-    <th>
-    <label class="checkboxs">
-    <input type="checkbox" id="select-all">
-    <span class="checkmarks"></span>
-    </label>
-    </th>
-    <th>RECEIVER NAME</th>
-    <th>AWB</th>
-    <th>Order number </th>
-    <th>AWB PCS</th>
-    <th>AWB KG</th>
-    <th>Action</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for pc in pcs %}
-    <tr>
-    <td>
-    <label class="checkboxs">
-    <input type="checkbox" name="awb_id[]" value="{{pc.id}}" id="arrived_status" class="arrived_status">
-    <span class="checkmarks"></span>
-    </label>
-    </td>
-    <td class="productimgname">
-        <a href="{% url 'parcel_view' pc.id %}">{{pc.receiver_name}}</a>
-    </td>
-    <td>{{pc.awb}}</td>
-    <td>{{pc.order_number}}</td>
-    <td>{{pc.awb_pcs}}</td>
-    <td>{{pc.awb_kg}}</td>
-    <td>
-    <a class="me-3" href="{% url 'parcel_view' pc.id %}">
-    <img src="{% static 'system/assets/img/icons/edit.svg' %}" alt="img">
-    </a>
-  
-    <a class="confirm-text" href="{% url 'delete-awb' pc.id %}">
-    <img src="{% static 'system/assets/img/icons/delete.svg' %}" alt="img">
-    </a>
-    </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-    </table>
-    </div>
+
+        <!-- Filter Inputs -->
+        <div class="card mb-0" id="filter_inputs">
+            <div class="card-body pb-0">
+                <div class="row g-2">
+                    <div class="col-12 d-flex flex-wrap gap-2">
+                        <div class="form-group flex-grow-1">
+                            <select name="status" id="id_status" class="form-control">
+                                <option value="arrived">Arrived</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="date" id="id_date" name="date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <input type="time" id="id_time" name="time" class="form-control">
+                        </div>
+                        <div class="form-group flex-grow-1">
+                            <input name="note" id="id_note" class="form-control" placeholder="Note">
+                        </div>
+                        <div class="form-group">
+                            <select name="terminal" id="id_terminal" class="form-control">
+                                <option value="CAN - Guanzhou">CAN - Guanzhou</option>
+                                <option value="HKG - HongKong">HKG - HongKong</option>
+                                <option value="DAR - Dar es salaam">DAR - Dar es salaam</option>
+                                <option value="DXB - Dubai">DXB - Dubai</option>
+                                <option value="NBO - Nairobi">NBO - Nairobi</option>
+                                <option value="SHJ - Sharjah">SHJ - Sharjah</option>
+                                <option value="JNB - Johanesburg">JNB - Johanesburg</option>
+                                <option value="MCT - Muscat">MCT - Muscat</option>
+                                <option value="BOM - Mumbai">BOM - Mumbai</option>
+                                <option value="ADD - Addis Ababa">ADD - Addis Ababa</option>
+                            </select>
+                        </div>
+                        <div class="update-btn">
+                            <button type="submit" id="load_status" class="btn btn-danger add_loaded_status">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AWB Table -->
+        <div class="table-responsive mt-3">
+            <table class="table datanew table-hover">
+                <thead>
+                    <tr>
+                        <th><label class="checkboxs"><input type="checkbox" id="select-all"><span class="checkmarks"></span></label></th>
+                        <th>RECEIVER NAME</th>
+                        <th>AWB</th>
+                        <th>Order number</th>
+                        <th>AWB PCS</th>
+                        <th>AWB KG</th>
+                        <th>DATE</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pc in pcs %}
+                    <tr>
+                        <td>
+                            <label class="checkboxs">
+                                <input type="checkbox" name="awb_id[]" value="{{ pc.id }}" class="loaded_status">
+                                <span class="checkmarks"></span>
+                            </label>
+                        </td>
+                        <td><a href="{% url 'parcel_view' pc.id %}">{{ pc.receiver_name }}</a></td>
+                        <td>{{ pc.awb }}</td>
+                        <td>{{ pc.order_number }}</td>
+                        <td>{{ pc.awb_pcs }}</td>
+                        <td>{{ pc.awb_kg }}</td>
+                        <td>{{ pc.date_received|date:"Y-m-d" }}</td>
+                        <td>
+                            <a class="me-3" href="{% url 'parcel_view' pc.id %}"><img src="{% static 'system/assets/img/icons/edit.svg' %}" alt="img"></a>
+                            <a href="{% url 'print_label' pc.id %}" target="_blank" data-bs-toggle="tooltip" title="print"><img src="{% static 'system/assets/img/icons/printer.svg' %}" alt="img"></a>
+                            <a class="confirm" href="{% url 'delete-awb' pc.id %}"><img src="{% static 'system/assets/img/icons/delete.svg' %}" alt="img"></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center">No AWBs found for this year.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     </div>
 </div>
 {% endblock %}
-{% block script %}
-<!-- Include Flatpickr CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-<!-- Include Flatpickr JS -->
+{% block script %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-     document.addEventListener('DOMContentLoaded', function() {
-            flatpickr("#id_date", {
-                dateFormat: "Y-m-d",
-                allowInput: true
-            });
-            flatpickr("#id_due_date", {
-                dateFormat: "Y-m-d",
-                allowInput: true
-            });
-            flatpickr("#id_time", {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "H:i",
-                time_24hr: true,
-                allowInput: true
-            });
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#id_date", { dateFormat: "Y-m-d", allowInput: true });
+    flatpickr("#id_time", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, allowInput: true });
+});
 </script>
 <script>
-    $(document).ready(function(){
-    $('#arrived_btn').click(function(){
-        if(confirm('Are you sure you want to load awb')){
-            var id =[]
-            $('#arrived_status:checked').each(function(i){
-                id[i] = $(this).val()
-            })
+$(document).ready(function(){
+    $('#load_status').click(function(){
+        if(confirm('Are you sure you want to load AWB?')){
+            var id = [];
+            $('.loaded_status:checked').each(function(i){ id[i] = $(this).val(); });
             if(id.length === 0){
-                alert('please select item')
-            }else {
-                console.log(id)
+                alert('Please select item');
+            } else {
                 $.ajax({
                     type: 'POST',
-                    url: '/sifex/arrived/',
+                    url: '/sifex/departed/',
                     data: {
                         'csrfmiddlewaretoken': csrftoken,
                         id,
@@ -204,20 +207,17 @@
                         'time': $('#id_time').val(),
                         'note': $('#id_note').val(),
                         'terminal': $('#id_terminal').val(),
-                        
                     },
-                    
-                    success: function(res){
-                        // console.log(res)
-                        window.location = '/sifex/parcel_import/'
-                    },
-                    error: function(err){
-                        console.log(err)
-                    }
+                    success: function(res){ window.location = '/sifex/accept_console/'; },
+                    error: function(err){ console.log(err); }
                 });
             }
         }
-    })
-})
+    });
+
+    $('#select-all').change(function(){
+        $('.loaded_status').prop('checked', $(this).prop('checked'));
+    });
+});
 </script>
 {% endblock %}

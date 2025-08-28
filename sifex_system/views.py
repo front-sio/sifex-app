@@ -131,6 +131,8 @@ def accept_console(request, year=None):
         .order_by("-date_received")
     )
 
+    print(pcs.count())
+
     # Get distinct years from date_received
     available_years = Masterawb.objects.filter(
         accepted=True, deleted=False
@@ -177,11 +179,10 @@ def accept_loaded_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
+   
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -279,7 +280,7 @@ def accept_underclearance_console(request, year=None):
     # Filter parcels by year
     pcs = (
         Masterawb.objects.filter(
-            underclearance=True,
+            under_clearance=True,
             deleted=False,
             date_received__year=year
         )
@@ -289,7 +290,7 @@ def accept_underclearance_console(request, year=None):
 
     # Get distinct years from date_received
     available_years = Masterawb.objects.filter(
-        underclearance=True, deleted=False
+        under_clearance=True, deleted=False
     ).dates("date_received", "year", order="DESC")
     # Convert to int year numbers
     available_years = [d.year for d in available_years]

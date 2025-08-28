@@ -1429,18 +1429,13 @@ class InvoiceListView(View):
                 Q(awb__awb__icontains=search_query) |
                 Q(customer__icontains=search_query)
             )
-
-        # Pagination
-        page_number = request.GET.get('page', 1)
-        paginator = Paginator(invoices, 10000)
-        page_obj = paginator.get_page(page_number)
-
+      
         # Get available years (distinct)
         years_qs = Invoice.objects.dates('date', 'year', order='DESC')
         available_years = [d.year for d in years_qs]
 
         context = {
-            'invoices': page_obj,
+            'invoices': invoices,
             'available_years': available_years,
             'selected_year': selected_year,
             'selected_status': selected_status,
@@ -1666,17 +1661,21 @@ class DeleteInvoiceView(LoginRequiredMixin, View):
     login_url = '/accounts/login/'  
     redirect_field_name = 'next'
 
-    def delete(self, request, id, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
-        Handles deletion of single or multiple invoices.
-        'id' can be a single ID or comma-separated IDs.
+        Handles deletion of single or multiple invoices via POST.
+        Expects a hidden input `invoice_ids` with comma-separated IDs.
         """
-        invoice_ids = id.split(',')  # split multiple IDs if provided
+        invoice_ids_str = request.POST.get('invoice_ids', '')
+        if not invoice_ids_str:
+            return JsonResponse({'success': False, 'message': 'No invoice IDs provided.'})
+
+        invoice_ids = invoice_ids_str.split(',')
         deleted_count = 0
 
         for inv_id in invoice_ids:
             try:
-                invoice = Invoice.objects.get(pk=inv_id)
+                invoice = Invoice.objects.get(pk=int(inv_id))
                 invoice.deleted = True
                 invoice.save()
 
@@ -1695,9 +1694,8 @@ class DeleteInvoiceView(LoginRequiredMixin, View):
                     description=f'Marked Invoice ID: {invoice.id}, Customer: {invoice.customer} as deleted'
                 )
                 deleted_count += 1
-
             except Invoice.DoesNotExist:
-                continue  # skip invalid IDs
+                continue
 
         return JsonResponse({
             'success': True,
@@ -1705,7 +1703,7 @@ class DeleteInvoiceView(LoginRequiredMixin, View):
         })
 
     def get(self, request, *args, **kwargs):
-        return HttpResponseNotAllowed(['DELETE'])
+        return HttpResponseNotAllowed(['POST'])
 
 
 

@@ -46,12 +46,34 @@
         margin-top: 10px;
     }
 
-    /* ✅ Fix Bootstrap modal z-index conflicts */
+    /* Fix Bootstrap modal z-index conflicts */
     .modal {
         z-index: 2000 !important;
     }
     .modal-backdrop {
         z-index: 1999 !important;
+    }
+
+    /* Loading state for delete button */
+    .btn-loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    .btn-loading::after {
+        content: '';
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
@@ -64,7 +86,7 @@
 <div class="card">
     <div class="card-body">
 
-        <!-- Year Filter (Pagination Flex) -->
+        <!-- Year Filter -->
         <div class="pagination-year mb-3">
             {% for y in available_years %}
                 {% if y == selected_year %}
@@ -84,6 +106,7 @@
                 <thead>
                     <tr>
                         <th><label class="checkboxs"><input type="checkbox" id="select-all"><span class="checkmarks"></span></label></th>
+                        <th>NO#</th>
                         <th>TRACKING NUMBER</th>
                         <th>ORIGIN</th>
                         <th>CUSTOMER</th>
@@ -94,13 +117,14 @@
                 </thead>
                 <tbody>
                     {% for invoice in invoices %}
-                    <tr>
+                    <tr id="invoice-row-{{ invoice.id }}">
                         <td>
                             <label class="checkboxs">
                                 <input type="checkbox" name="invoice_id" value="{{ invoice.id }}" class="invoice-checkbox">
                                 <span class="checkmarks"></span>
                             </label>
                         </td>
+                        <td>{{ invoice.id }}</td>
                         <td>{{ invoice.awb.awb }}</td>
                         <td>{{ invoice.awb.awb_type }}</td>
                         <td>{{ invoice.customer }}</td>
@@ -136,10 +160,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <form id="delete-form" method="post" action="">
+        <form id="delete-form" method="post" action="{% url 'delete-invoice' %}">
             {% csrf_token %}
             <input type="hidden" name="invoice_ids" id="invoice-ids">
-            <button type="submit" class="btn btn-danger">Delete</button>
+            <button type="submit" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
         </form>
       </div>
     </div>
@@ -160,21 +184,62 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.invoice-checkbox').forEach(cb => cb.checked = this.checked);
     });
 
-    // Delete selected button
     const deleteSelectedBtn = document.getElementById('delete-selected-btn');
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const invoiceIdsInput = document.getElementById('invoice-ids');
     const deleteForm = document.getElementById('delete-form');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
+    // Show modal with selected IDs
     deleteSelectedBtn.addEventListener('click', function() {
         const selected = Array.from(document.querySelectorAll('.invoice-checkbox:checked')).map(cb => cb.value);
         if(selected.length === 0) {
-            alert('Please select at least one invoice to delete.');
+            // alert('Please select at least one invoice to delete.');
             return;
         }
         invoiceIdsInput.value = selected.join(',');
-        deleteForm.action = "{% url 'delete-invoice' 0 %}".replace('0', selected.join(','));
         deleteModal.show();
+    });
+
+    // Handle AJAX deletion with loading state
+    deleteForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const formData = new FormData(deleteForm);
+        const ids = formData.get('invoice_ids');
+
+        // Set loading state
+        confirmDeleteBtn.classList.add('btn-loading');
+        confirmDeleteBtn.disabled = true;
+
+        fetch(deleteForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success){
+                alert(data.message);
+                ids.split(',').forEach(id => {
+                    const row = document.getElementById(`invoice-row-${id}`);
+                    if(row) row.remove();
+                });
+                deleteModal.hide();
+            } else {
+                alert('Error deleting invoice(s).');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Unexpected error occurred.');
+        })
+        .finally(() => {
+            // Remove loading state
+            confirmDeleteBtn.classList.remove('btn-loading');
+            confirmDeleteBtn.disabled = false;
+        });
     });
 });
 </script>

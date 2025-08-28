@@ -69,7 +69,7 @@ urlpatterns = [
     path('save_awb/', on_edit_add_parcel, name="on_edit_save_awb"),
     path('export/pdf/<int:pk>/', export_masterawb_pdf_label, name="export-master-awb-pdf-label"),
     path('delete_awb/<int:id>/', delete_awb, name="delete-awb"),
-    path('delete_invoice/<int:id>/', DeleteInvoiceView.as_view(), name="delete-invoice"),
+    path('delete_invoice/', DeleteInvoiceView.as_view(), name="delete-invoice"),
 
     # sales report
 

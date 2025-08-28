@@ -1414,7 +1414,10 @@ class InvoiceListView(View):
             selected_year = now.year
 
         # Base queryset
-        invoices = Invoice.objects.select_related('awb').filter(date__year=selected_year).order_by('-date')
+        invoices = Invoice.objects.prefetch_related('awb')\
+                          .filter(date__year=selected_year)\
+                          .order_by('-date')
+
 
         # Status filter
         if selected_status:
@@ -1429,7 +1432,7 @@ class InvoiceListView(View):
 
         # Pagination
         page_number = request.GET.get('page', 1)
-        paginator = Paginator(invoices, 30)
+        paginator = Paginator(invoices, 10000)
         page_obj = paginator.get_page(page_number)
 
         # Get available years (distinct)

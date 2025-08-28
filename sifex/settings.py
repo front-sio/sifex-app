@@ -152,8 +152,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Media files (Uploaded by users)
 MEDIA_URL = '/media/'
@@ -171,19 +171,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 # Logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console':{
-            'class':'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console':{
+#             'class':'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'INFO',
+#     },
+# }
 
 # Message storage configuration
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'

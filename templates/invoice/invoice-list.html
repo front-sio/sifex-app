@@ -45,6 +45,14 @@
     .delete-selected-btn {
         margin-top: 10px;
     }
+
+    /* ✅ Fix Bootstrap modal z-index conflicts */
+    .modal {
+        z-index: 2000 !important;
+    }
+    .modal-backdrop {
+        z-index: 1999 !important;
+    }
 </style>
 {% endblock %}
 
@@ -70,7 +78,7 @@
             {% endif %}
         </div>
 
-        <!-- AWB Table -->
+        <!-- Invoice Table -->
         <div class="table-responsive mt-3">
             <table class="table datanew table-hover">
                 <thead>
@@ -99,11 +107,11 @@
                         <td>{{ invoice.date|date:"Y-m-d" }}</td>
                         <td>{{ invoice.status|title }}</td>
                         <td>
-                            <a class="me-3" href="{% url 'invoice-detail' invoice.id %}">VIEW </a>
+                            <a class="me-3" href="{% url 'invoice-detail' invoice.id %}">VIEW</a>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="8" class="text-center">No AWBs found for this year.</td></tr>
+                    <tr><td colspan="8" class="text-center">No Invoices found for this year.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -167,17 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
         invoiceIdsInput.value = selected.join(',');
         deleteForm.action = "{% url 'delete-invoice' 0 %}".replace('0', selected.join(','));
         deleteModal.show();
-    });
-
-    // Delete single invoice
-    document.querySelectorAll('.delete-single-btn').forEach(btn => {
-        btn.addEventListener('click', function(e){
-            e.preventDefault();
-            const id = this.dataset.id;
-            invoiceIdsInput.value = id;
-            deleteForm.action = "{% url 'delete-invoice' 0 %}".replace('0', id);
-            deleteModal.show();
-        });
     });
 });
 </script>

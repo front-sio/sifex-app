@@ -151,92 +151,274 @@ def accept_console(request, year=None):
 
 @login_required
 def accept_loaded_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        loaded=True,
-        date_received__year=year
-    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+   # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            loaded=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        loaded=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/accept_parcel/loaded.html', context)
 
 
 @login_required
 def accept_manifested_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        manifested=True,
-        deleted=False,
-        date_received__year=year
-    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            manifested=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        manifested=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/accept_parcel/manifested.html', context)
 
 
 @login_required
 def accept_arrived_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        arrived=True,
-        date_received__year=year
-    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            arrived=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        arrived=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/importer/arrived.html', context)
 
 
 @login_required
 def accept_underclearance_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        under_clearance=True,
-        deleted=False,
-        date_received__year=year
-    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            underclearance=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        underclearance=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/importer/underclearance.html', context)
 
 
 @login_required
 def accept_release_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        released=True,
-        deleted=False,
-        date_received__year=year
-    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            released=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        released=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/importer/released.html', context)
 
 
 @login_required
 def accept_delivered_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        billed=True,
-        deleted=False,
-        date_received__year=year
-    ).prefetch_related("awb_locations") \
-     .only("id", "awb", "receiver_name", "date_received") \
-     .order_by('-date_received').refresh_related("awb_locations")
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            billed=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        billed=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/importer/delivered.html', context)
 
 
 @login_required
 def accept_pod_console(request, year=None):
-    year = year or now().year
-    pcs = Masterawb.objects.filter(
-        delivered=True,
-        deleted=False,
-        date_received__year=year
-    ).only("id", "awb", "receiver_name", "date_received").order_by('-date_received')
+    # Determine year from URL or GET param
+    if year is None:
+        year = request.GET.get("year")
+    try:
+        year = int(year) if year else now().year
+    except ValueError:
+        year = now().year
 
-    context = {'pcs': paginate_queryset(request, pcs)}
+    # Filter parcels by year
+    pcs = (
+        Masterawb.objects.filter(
+            delivered=True,
+            deleted=False,
+            date_received__year=year
+        )
+        .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
+        .order_by("-date_received")
+    )
+
+    # Get distinct years from date_received
+    available_years = Masterawb.objects.filter(
+        delivered=True, deleted=False
+    ).dates("date_received", "year", order="DESC")
+    # Convert to int year numbers
+    available_years = [d.year for d in available_years]
+
+    # Paginate
+    paginated_pcs = paginate_queryset(request, pcs)
+
+    context = {
+        "pcs": paginated_pcs,
+        "selected_year": year,
+        "available_years": available_years,  # list of year numbers
+    }
     return render(request, 'system/parcels/importer/pod.html', context)
 
 @login_required

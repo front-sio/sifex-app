@@ -46,7 +46,7 @@
                    onclick="restoreInvoice('{{ invoice.id }}')">Restore</a> |
                 <a href="javascript:void(0);" class="button is-small is-danger action-btn" 
                    onclick="confirmDelete('{{ invoice.id }}', 'invoice')">Delete Permanently</a> |
-                <a class="button is-small is-info action-btn" href="{% url 'invoice_detail' invoice.id %}" data-action="View Invoice">View Invoice</a>
+                <a class="button is-small is-info action-btn" href="{% url 'invoice-detail' invoice.id %}" data-action="View Invoice">View Invoice</a>
             </td>
         </tr>
         {% endfor %}

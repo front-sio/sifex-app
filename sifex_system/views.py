@@ -2621,7 +2621,7 @@ def awb_details(request, awb_id):
 
 @login_required
 def activity_log_list(request):
-    logs = ActivityLog.objects.all().order_by('timestamp')
+    logs = ActivityLog.objects.all().order_by('timestamp')[:120]
     return render(request, 'system/history/activity_log_list.html', {'logs': logs})
 
 

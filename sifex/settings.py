@@ -101,22 +101,37 @@ WSGI_APPLICATION = 'sifex.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Use PostgreSQL database
-DATABASE_URL = "postgresql://postgres:anWTLHLryNYAsoexOMsVeOznaBftiYIB@junction.proxy.rlwy.net:32934/railway"
+# DATABASE_URL = "postgresql://postgres:anWTLHLryNYAsoexOMsVeOznaBftiYIB@junction.proxy.rlwy.net:32934/railway"
 
 # # Parse the database URL and configure DATABASES setting
-url = urlparse(DATABASE_URL)
+# url = urlparse(DATABASE_URL)
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': url.path[1:],  # Extract the DB name from the URL path
+#         'USER': url.username,
+#         'PASSWORD': url.password,
+#         'HOST': url.hostname,
+#         'PORT': url.port,
+#     }
+# }
 
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': url.path[1:],  # Extract the DB name from the URL path
-        'USER': url.username,
-        'PASSWORD': url.password,
-        'HOST': url.hostname,
-        'PORT': url.port,
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
+
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

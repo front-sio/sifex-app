@@ -140,11 +140,10 @@ def accept_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
+    
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -217,11 +216,9 @@ def accept_manifested_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
-
+    
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -256,11 +253,10 @@ def accept_arrived_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
+   
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -295,11 +291,9 @@ def accept_underclearance_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -334,11 +328,10 @@ def accept_release_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
+   
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -373,11 +366,10 @@ def accept_delivered_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
+   
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }
@@ -412,11 +404,9 @@ def accept_pod_console(request, year=None):
     # Convert to int year numbers
     available_years = [d.year for d in available_years]
 
-    # Paginate
-    paginated_pcs = paginate_queryset(request, pcs)
 
     context = {
-        "pcs": paginated_pcs,
+        "pcs": pcs,
         "selected_year": year,
         "available_years": available_years,  # list of year numbers
     }

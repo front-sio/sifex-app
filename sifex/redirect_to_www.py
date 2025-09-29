@@ -1,3 +1,4 @@
+# sifex/redirect_to_www.py
 from django.http import HttpResponsePermanentRedirect
 
 class RedirectToWWWMiddleware:

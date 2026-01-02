@@ -55,18 +55,20 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # 'core.middleware.UnderConstructionMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'sifex.redirect_to_www.RedirectToWWWMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
+    "corsheaders.middleware.CorsMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+    "sifex.redirect_to_www.RedirectToWWWMiddleware",
 ]
+
 
 ROOT_URLCONF = 'sifex.urls'
 CORS_ALLOW_ALL_ORIGINS = True
@@ -101,22 +103,25 @@ WSGI_APPLICATION = 'sifex.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Use PostgreSQL database
-DATABASE_URL = "postgresql://postgres:anWTLHLryNYAsoexOMsVeOznaBftiYIB@junction.proxy.rlwy.net:32934/railway"
+#DATABASE_URL = "postgresql://postgres:anWTLHLryNYAsoexOMsVeOznaBftiYIB@junction.proxy.rlwy.net:32934/railway"
 
 # # Parse the database URL and configure DATABASES setting
-url = urlparse(DATABASE_URL)
+#url = urlparse(DATABASE_URL)
 
+
+DATABASE_URL = env('DATABASE_URL', default=None)
+
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL is not set")
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': url.path[1:],  # Extract the DB name from the URL path
-        'USER': url.username,
-        'PASSWORD': url.password,
-        'HOST': url.hostname,
-        'PORT': url.port,
-    }
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,      # helps performance
+        ssl_require=False      # internal Dokploy network; set True only if using external SSL
+    )
 }
+
 
 
 # DATABASES = {
@@ -168,7 +173,8 @@ STATICFILES_DIRS = [
 ]
 
 # STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 # Media files (Uploaded by users)
 MEDIA_URL = '/media/'

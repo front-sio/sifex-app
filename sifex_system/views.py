@@ -1404,11 +1404,15 @@ class InvoiceListView(View):
         except (TypeError, ValueError):
             selected_year = now.year
 
-        # Base queryset
-        invoices = Invoice.objects.prefetch_related('awb')\
-                          .filter(date__year=selected_year)\
-                          .order_by('-date')
+        # Base queryset - initially get all invoices (including deleted ones)
+        invoices = Invoice.objects.prefetch_related('awb')
 
+        # Year filter (only apply if a specific year is selected)
+        if selected_year:
+            invoices = invoices.filter(date__year=selected_year)
+        
+        # Order by date
+        invoices = invoices.order_by('-date')
 
         # Status filter
         if selected_status:

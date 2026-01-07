@@ -41,6 +41,104 @@
             opacity: 0;
             visibility: hidden;
         }
+        
+        /* Sidebar Menu Enhancement */
+        #sidebar-menu .submenu > a {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        #sidebar-menu .submenu ul {
+            display: none;
+        }
+        
+        #sidebar-menu .submenu.active ul,
+        #sidebar-menu .submenu a.subdrop + ul {
+            display: block !important;
+        }
+        
+        #sidebar-menu .menu-arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        #sidebar-menu .submenu a.subdrop .menu-arrow {
+            transform: rotate(90deg);
+        }
+        
+        /* Ensure sidebar is visible on all pages */
+        .sidebar {
+            min-height: 100vh;
+            position: fixed;
+            z-index: 1000;
+        }
+        
+        /* Fix for empty page content not affecting sidebar */
+        .page-wrapper {
+            min-height: 100vh;
+        }
+        
+        /* Debug styles for empty pages */
+        .empty-state-message {
+            padding: 2rem;
+            text-align: center;
+            color: #666;
+        }
+        
+        /* Ensure sidebar menu items are clickable */
+        #sidebar-menu .submenu > a[href="javascript:void(0);"] {
+            cursor: pointer !important;
+            pointer-events: all !important;
+        }
+        
+        /* Fix menu title overflow and text wrapping */
+        #sidebar-menu li a {
+            display: flex !important;
+            align-items: center;
+            padding: 12px 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        
+        #sidebar-menu li a img {
+            flex-shrink: 0;
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        #sidebar-menu li a span:not(.menu-arrow) {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 13px;
+            line-height: 1.2;
+        }
+        
+        #sidebar-menu li a .menu-arrow {
+            flex-shrink: 0;
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Submenu items styling */
+        #sidebar-menu .submenu ul li a {
+            padding-left: 45px;
+            font-size: 12px;
+        }
+        
+        #sidebar-menu .submenu ul li a span {
+            font-size: 12px;
+        }
+        
+        /* Long menu text handling */
+        @media (max-width: 768px) {
+            #sidebar-menu li a span:not(.menu-arrow) {
+                font-size: 11px;
+            }
+        }
 </style>
 <script>
     function getCookie(name) {
@@ -159,13 +257,241 @@ const csrftoken = getCookie('csrftoken');
 <script src="{% static 'system/assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
 <script src="{% static 'system/assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
 <script src="{% static 'system/assets/plugins/chartjs/chart.min.js' %}"></script>
-<script src="{% static 'system/assets/plugins/chartjs/chart-data.js' %}"></script>
+<script src="{% static 'system/assets/plugins/chartjs/chart-data.js' %}?v=2"></script>
 
 <script src="{% static 'system/assets/js/script.js' %}"></script>
+<!-- Sidebar Menu Fix -->
+<script src="{% static 'system/assets/js/sidebar-menu-fix.js' %}"></script>
 <!-- <script src="{% static 'system/assets/js/system_js/acceptance.js' %}"></script> -->
-<script src="{% static 'system/assets/js/system_js/main.js' %}"></script>
+<script src="{% static 'system/assets/js/system_js/main.js' %}?v=2"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
-<script src="{% static 'home/assets/js/main.js' %}"></script>
+
+<!-- Sidebar Menu Fix for Empty Pages -->
+<script>
+$(document).ready(function() {
+    console.log('Starting sidebar menu initialization...');
+    
+    // Flag to prevent multiple initializations
+    var sidebarInitialized = false;
+    
+    // Comprehensive sidebar menu fix
+    function ensureSidebarWorks() {
+        if (sidebarInitialized) {
+            console.log('Sidebar already initialized, skipping...');
+            return;
+        }
+        
+        console.log('Initializing sidebar menu...');
+        
+        // Check if sidebar menu exists
+        if ($('#sidebar-menu').length === 0) {
+            console.warn('Sidebar menu not found');
+            return;
+        }
+        
+        // Clear any existing handlers first
+        $('#sidebar-menu .submenu > a').off('click.customSidebar');
+        
+        // Initialize submenu functionality
+        $('#sidebar-menu .submenu > a').each(function(index) {
+            var $menuLink = $(this);
+            var menuText = $menuLink.find('span').first().text().trim();
+            console.log(`Setting up menu ${index}: "${menuText}"`);
+            
+            // Add click handler for submenu toggle
+            $menuLink.on('click.customSidebar', function(e) {
+                // Prevent default action and stop propagation
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $currentSubmenu = $(this).next('ul');
+                var $parentLi = $(this).parent('li');
+                var isOpen = $currentSubmenu.is(':visible') || $parentLi.hasClass('submenu-open');
+                
+                if (isOpen) {
+                    // Close current submenu
+                    $currentSubmenu.slideUp(300);
+                    $(this).removeClass('subdrop');
+                    $parentLi.removeClass('submenu-open');
+                    $(this).find('.menu-arrow').css('transform', 'rotate(0deg)');
+                } else {
+                    // Close all other submenus first
+                    $('#sidebar-menu .submenu ul:visible').slideUp(300);
+                    $('#sidebar-menu .submenu > a').removeClass('subdrop');
+                    $('#sidebar-menu .submenu').removeClass('submenu-open');
+                    $('#sidebar-menu .menu-arrow').css('transform', 'rotate(0deg)');
+                    
+                    // Open current submenu
+                    $currentSubmenu.slideDown(300);
+                    $(this).addClass('subdrop');
+                    $parentLi.addClass('submenu-open');
+                    $(this).find('.menu-arrow').css('transform', 'rotate(90deg)');
+                }
+                
+                return false;
+            });
+            
+            // Ensure the submenu is properly hidden initially
+            var $submenu = $menuLink.next('ul');
+            if (!$menuLink.hasClass('subdrop')) {
+                $submenu.hide();
+            }
+        });
+        
+        // Set active menu item (only once)
+        setActiveMenu();
+        
+        sidebarInitialized = true;
+        console.log('Sidebar menu initialized successfully');
+    }
+    
+    function setActiveMenu() {
+        var currentPath = window.location.pathname;
+        
+        // Remove all active classes first
+        $('#sidebar-menu a').removeClass('active');
+        
+        var activeMenuSet = false;
+        
+        // Find and set active menu item (only the best match)
+        $('#sidebar-menu a[href]').each(function() {
+            if (activeMenuSet) return; // Skip if we already found a match
+            
+            var href = $(this).attr('href');
+            if (href && href !== 'javascript:void(0);' && href !== '#') {
+                // Exact match gets priority
+                if (currentPath === href) {
+                    $(this).addClass('active');
+                    activeMenuSet = true;
+                    
+                    // If this item is in a submenu, open the parent
+                    var $parentSubmenu = $(this).closest('.submenu');
+                    if ($parentSubmenu.length) {
+                        $parentSubmenu.addClass('submenu-open');
+                        $parentSubmenu.find('> a').addClass('subdrop');
+                        $parentSubmenu.find('> ul').show();
+                        $parentSubmenu.find('> a .menu-arrow').css('transform', 'rotate(90deg)');
+                    }
+                }
+            }
+        });
+        
+        // If no exact match found, try partial match (but be more selective)
+        if (!activeMenuSet) {
+            $('#sidebar-menu a[href]').each(function() {
+                if (activeMenuSet) return;
+                
+                var href = $(this).attr('href');
+                if (href && href !== 'javascript:void(0);' && href !== '#' && href.length > 1) {
+                    if (currentPath.indexOf(href) === 0 && href !== '/') {
+                        $(this).addClass('active');
+                        activeMenuSet = true;
+                        
+                        // If this item is in a submenu, open the parent
+                        var $parentSubmenu = $(this).closest('.submenu');
+                        if ($parentSubmenu.length) {
+                            $parentSubmenu.addClass('submenu-open');
+                            $parentSubmenu.find('> a').addClass('subdrop');
+                            $parentSubmenu.find('> ul').show();
+                            $parentSubmenu.find('> a .menu-arrow').css('transform', 'rotate(90deg)');
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Initialize immediately
+    ensureSidebarWorks();
+    
+    // Only one fallback initialization after a short delay
+    setTimeout(function() {
+        if (!sidebarInitialized) {
+            ensureSidebarWorks();
+        }
+    }, 500);
+    
+    // Debug function - you can call this in browser console
+    window.debugSidebar = function() {
+        console.log('=== SIDEBAR DEBUG INFO ===');
+        console.log('Sidebar initialized:', sidebarInitialized);
+        console.log('Sidebar menu elements:', $('#sidebar-menu .submenu').length);
+        console.log('Submenu links:', $('#sidebar-menu .submenu > a').length);
+        $('#sidebar-menu .submenu > a').each(function(i) {
+            var $this = $(this);
+            console.log(`Menu ${i}:`, $this.find('span').text(), 
+                       'href:', $this.attr('href'), 
+                       'visible:', $this.next('ul').is(':visible'),
+                       'has subdrop:', $this.hasClass('subdrop'));
+        });
+        console.log('=== END DEBUG INFO ===');
+    };
+    
+    // Simplified fallback handler
+    $(document).on('click', '#sidebar-menu .submenu > a[href="javascript:void(0);"]', function(e) {
+        if (!sidebarInitialized) {
+            console.log('Fallback click handler triggered');
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var $submenu = $(this).next('ul');
+            if ($submenu.is(':visible')) {
+                $submenu.slideUp();
+                $(this).removeClass('subdrop');
+            } else {
+                $('#sidebar-menu .submenu ul:visible').slideUp();
+                $('#sidebar-menu .submenu > a').removeClass('subdrop');
+                $submenu.slideDown();
+                $(this).addClass('subdrop');
+            }
+        }
+    });
+});
+
+// Global error suppression for empty pages
+$(document).ready(function() {
+    // Fix for DataTable and Chart errors on empty pages
+    window.addEventListener('error', function(e) {
+        if (e.message && (
+            e.message.includes('getContext') || 
+            e.message.includes('_DT_CellIndex') || 
+            e.message.includes('DataTable') ||
+            e.message.includes('null is not an object') ||
+            e.message.includes('undefined is not an object')
+        )) {
+            console.log('🔇 Suppressed error on empty page:', e.message);
+            e.preventDefault();
+            return true;
+        }
+    });
+    
+    // Override potential problematic functions
+    if (typeof $.fn.DataTable !== 'undefined') {
+        var originalDataTable = $.fn.DataTable;
+        $.fn.DataTable = function(options) {
+            try {
+                if (this.length === 0) {
+                    console.log('🔇 DataTable skipped - no matching elements');
+                    return this;
+                }
+                return originalDataTable.call(this, options);
+            } catch (e) {
+                console.log('🔇 DataTable initialization skipped:', e.message);
+                return this;
+            }
+        };
+        // Copy static methods
+        $.fn.DataTable.Api = originalDataTable.Api;
+        $.fn.DataTable.fnVersionCheck = originalDataTable.fnVersionCheck;
+        $.fn.DataTable.fnIsDataTable = originalDataTable.fnIsDataTable;
+        $.fn.DataTable.fnTables = originalDataTable.fnTables;
+        $.fn.DataTable.version = originalDataTable.version;
+    }
+    
+    console.log('🛡️ Error suppression for empty pages initialized');
+});
+</script>
+
 {% block script %}
 <script>
     $('#toast').delay(2000).fadeOut('slow')

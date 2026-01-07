@@ -235,7 +235,7 @@ def accept_arrived_console(request, year=None):
     except ValueError:
         year = now().year
 
-    # Filter parcels by year
+    # Filter parcels by year - show AWBs that have arrived (regardless of other statuses)
     pcs = (
         Masterawb.objects.filter(
             arrived=True,
@@ -833,6 +833,24 @@ def arrived_master_status(request):
         terminal = request.POST.get('terminal')
         for id in awb_list:
             awb = Masterawb.objects.get(pk=id) 
+            # Ensure proper workflow progression
+            # If AWB is coming from manifested, first mark it as departed
+            if awb.manifested and not awb.departed:
+                awb.manifested = False
+                awb.departed = True
+                awb.save()
+                # Create departed status first
+                MasterStatus.objects.create(
+                    master=awb,
+                    user=request.user,
+                    status='departed',
+                    date=date,
+                    time=time,
+                    note=f'Auto-marked as departed before arrival. {note}' if note else 'Auto-marked as departed before arrival',
+                    terminal=terminal
+                )
+            
+            # Now mark as arrived
             awb.departed = False
             awb.arrived = True 
             awb.save()
@@ -864,6 +882,20 @@ def underclearance_master_status(request):
         terminal = request.POST.get('terminal')
         for id in awb_list:
             awb = Masterawb.objects.get(pk=id) 
+            # Ensure proper workflow progression
+            # If AWB hasn't arrived yet, mark it as arrived first
+            if not awb.arrived:
+                # Auto-progress through missing steps
+                if awb.manifested and not awb.departed:
+                    awb.manifested = False
+                    awb.departed = True
+                    awb.save()
+                if awb.departed:
+                    awb.departed = False
+                    awb.arrived = True
+                    awb.save()
+            
+            # Now mark as under clearance
             awb.arrived = False
             awb.under_clearance = True 
             awb.save()
@@ -895,6 +927,24 @@ def released_master_status(request):
         terminal = request.POST.get('terminal')
         for id in awb_list:
             awb = Masterawb.objects.get(pk=id) 
+            # Ensure proper workflow progression
+            # Auto-progress through missing steps if needed
+            if not awb.under_clearance:
+                if not awb.arrived:
+                    if awb.manifested and not awb.departed:
+                        awb.manifested = False
+                        awb.departed = True
+                        awb.save()
+                    if awb.departed:
+                        awb.departed = False
+                        awb.arrived = True
+                        awb.save()
+                # Mark as under clearance first
+                awb.arrived = False
+                awb.under_clearance = True
+                awb.save()
+            
+            # Now mark as released
             awb.under_clearance = False
             awb.released = True 
             awb.save()
@@ -926,7 +976,7 @@ def payment_master_status(request):
         terminal = request.POST.get('terminal')
         for id in awb_list:
             awb = Masterawb.objects.get(pk=id) 
-            awb.released = False
+            # Don't remove previous statuses - keep progression
             awb.bill = True 
             awb.save()
             MasterStatus.objects.create(
@@ -1404,8 +1454,8 @@ class InvoiceListView(View):
         except (TypeError, ValueError):
             selected_year = now.year
 
-        # Base queryset - initially get all invoices (including deleted ones)
-        invoices = Invoice.objects.prefetch_related('awb')
+        # Base queryset - exclude deleted invoices
+        invoices = Invoice.objects.filter(deleted=False).prefetch_related('awb')
 
         # Year filter (only apply if a specific year is selected)
         if selected_year:
@@ -1425,8 +1475,8 @@ class InvoiceListView(View):
                 Q(customer__icontains=search_query)
             )
       
-        # Get available years (distinct)
-        years_qs = Invoice.objects.dates('date', 'year', order='DESC')
+        # Get available years (distinct) - only from non-deleted invoices
+        years_qs = Invoice.objects.filter(deleted=False).dates('date', 'year', order='DESC')
         available_years = [d.year for d in years_qs]
 
         context = {
@@ -1439,10 +1489,56 @@ class InvoiceListView(View):
         return render(request, 'invoice/invoice-list.html', context)
 
     def post(self, request):
-        # Bulk delete
+        update_status = request.POST.get('status')
+        update_detail = request.POST.get('invoice_detail')
+        invoice_id = request.POST.get('invoice_id')
+
+        if update_status and update_detail and invoice_id:
+            invoice = get_object_or_404(Invoice, id=invoice_id)
+            edit_invoice_logic(invoice, update_detail, update_status, request.user)
+            if update_status in ('paid', 'credited'):
+                invoice.date_of_payment = timezone_now().date()
+            else:
+                invoice.date_of_payment = None
+            invoice.save()
+
+            awb = invoice.awb
+            if update_status in ('paid', 'credited'):
+                awb.bill = False
+                awb.invoice_generated = False
+                awb.billed = True
+            else:
+                awb.bill = False
+                awb.invoice_generated = True
+                awb.billed = False
+            awb.save()
+
+            ActivityLog.objects.create(
+                user=request.user,
+                activity_type='UPDATE',
+                description=f'Updated Invoice ID: {invoice.id} status to {update_status}'
+            )
+            messages.success(request, f'Invoice {invoice.id} marked as {update_status}.')
+            return redirect('invoice-detail', invoice_id=invoice.id)
+
+        # Bulk soft delete instead of hard delete
         invoice_ids = request.POST.getlist("invoice_id")
         if invoice_ids:
-            Invoice.objects.filter(id__in=invoice_ids).delete()
+            invoices = Invoice.objects.filter(id__in=invoice_ids)
+            for invoice in invoices:
+                invoice.deleted = True
+                invoice.save()
+                
+                # Update related AWB status
+                awb = invoice.awb
+                if awb.billed:
+                    awb.billed = False
+                    awb.bill = True
+                elif awb.invoice_generated:
+                    awb.invoice_generated = False
+                    awb.bill = True
+                awb.save()
+                    
         return redirect(request.get_full_path())
 
 
@@ -2638,20 +2734,38 @@ def trash_view(request):
 def restore_invoice(request, id):
     invoice = get_object_or_404(Invoice, pk=id)
     awb = invoice.awb
+    
+    # Restore the invoice
     invoice.deleted = False
     invoice.save()
 
-    if invoice.get_status == 'paid' or invoice.get_status == 'credited':
-        awb.bill=False 
+    # Update AWB status based on invoice status
+    if invoice.status == 'paid':
+        # Invoice is paid, AWB should be billed
+        awb.bill = False
+        awb.invoice_generated = False
+        awb.billed = True
+        awb.save()
+    elif invoice.status == 'credited':
+        # Invoice is credited, AWB should be billed  
+        awb.bill = False
+        awb.invoice_generated = False
+        awb.billed = True
+        awb.save()
+    else:
+        # Invoice is unpaid, AWB should have invoice generated status
+        # This prevents the AWB from showing in both invoice list AND generate invoice page
+        awb.bill = False
         awb.invoice_generated = True
+        awb.billed = False
         awb.save()
 
     ActivityLog.objects.create(
         user=request.user,
         activity_type='UPDATE',
-        description=f'Restored Invoice ID: {invoice.id}, Customer: {invoice.customer}'
+        description=f'Restored Invoice ID: {invoice.id}, Customer: {invoice.customer}, Status: {invoice.status}'
     )
-    messages.success(request, f'Invoice {invoice.customer} restored successfully')
+    messages.success(request, f'Invoice for {invoice.customer} restored successfully')
     return redirect('trash')
 
 

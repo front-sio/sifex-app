@@ -1,201 +1,165 @@
 {% extends 'system/app/index.html' %}
+{% load static %}
 {% load widget_tweaks %}
 {% block title %}Trash{% endblock %}
 
 {% block page %}Trash{% endblock page %}
+{% block slogan %}Restore or permanently delete items{% endblock slogan %}
 
 {% block content %}
-<h2>Trashed Items</h2>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Trash Management</h4>
+            </div>
+            <div class="card-body">
 
-<!-- Search field -->
-<div class="field">
-    <p class="control has-icons-left">
-        <input class="input" type="text" id="searchInput" placeholder="Search for anything...">
-        <span class="icon is-small is-left">
-            <i class="fas fa-search"></i>
-        </span>
-    </p>
-</div>
+                <!-- Search field -->
+                <div class="table-top">
+                    <div class="search-set">
+                        <div class="search-path">
+                            <input type="text" id="searchInput" placeholder="Search trash..." class="form-control">
+                        </div>
+                    </div>
+                </div>
 
-<h3>Invoices</h3>
-<table id="invoiceTable">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>AWB</th>
-            <th>Customer</th>
-            <th>PCS</th>
-            <th>Weight (Kg)</th>
-            <th>Origin</th>
-            <th>Amount</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for invoice in trashed_invoices %}
-        <tr id="invoice-row-{{ invoice.id }}">
-            <td>{{ invoice.id }}</td>
-            <td>{{ invoice.awb.awb }}</td>
-            <td>{{ invoice.customer }}</td>
-            <td>{{ invoice.awb.awb_pcs }}</td>
-            <td>{{ invoice.awb.awb_kg }}</td>
-            <td>{{ invoice.awb.awb_type }}</td>
-            <td>{{ invoice.total_amount_tzs }}</td>
-            <td>
-                <a href="javascript:void(0);" class="button is-small is-info action-btn" 
-                   onclick="restoreInvoice('{{ invoice.id }}')">Restore</a> |
-                <a href="javascript:void(0);" class="button is-small is-danger action-btn" 
-                   onclick="confirmDelete('{{ invoice.id }}', 'invoice')">Delete Permanently</a> |
-                <a class="button is-small is-info action-btn" href="{% url 'invoice-detail' invoice.id %}" data-action="View Invoice">View Invoice</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                <h5 class="text-primary">📄 Deleted Invoices</h5>
+                <div class="table-responsive">
+                    <table class="table datanew" id="invoiceTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>AWB</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>PCS</th>
+                                <th>Weight (Kg)</th>
+                                <th>Amount (TZS)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in trashed_invoices %}
+                            <tr id="invoice-row-{{ invoice.id }}">
+                                <td>{{ invoice.id }}</td>
+                                <td>{{ invoice.awb.awb }}</td>
+                                <td>{{ invoice.customer }}</td>
+                                <td>
+                                    {% if invoice.status == 'paid' %}
+                                        <span class="badges bg-lightgreen">{{ invoice.status|title }}</span>
+                                    {% elif invoice.status == 'credited' %}
+                                        <span class="badges bg-lightyellow">{{ invoice.status|title }}</span>
+                                    {% else %}
+                                        <span class="badges bg-lightgrey">{{ invoice.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ invoice.awb.awb_pcs }}</td>
+                                <td>{{ invoice.awb.awb_kg }}</td>
+                                <td>{{ invoice.total_amount_tzs|floatformat:0 }}</td>
+                                <td>
+                                    <a href="javascript:void(0);" class="me-3" 
+                                       onclick="restoreInvoice('{{ invoice.id }}')" 
+                                       title="Restore invoice">
+                                       <img src="{% static 'system/assets/img/icons/rotate.svg' %}" alt="img">
+                                    </a>
+                                    <a href="javascript:void(0);" class="me-3" 
+                                       onclick="confirmDelete('{{ invoice.id }}', 'invoice')"
+                                       title="Delete permanently">
+                                       <img src="{% static 'system/assets/img/icons/delete.svg' %}" alt="img">
+                                    </a>
+                                    <a class="me-3" 
+                                       href="{% url 'invoice-detail' invoice.id %}" 
+                                       title="View invoice details">
+                                       <img src="{% static 'system/assets/img/icons/eye.svg' %}" alt="img">
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">
+                                    <div class="alert alert-success">
+                                        <img src="{% static 'system/assets/img/icons/check-circle.svg' %}" alt="img"> No deleted invoices found. Great!
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-<h3>AWBs</h3>
-<table id="awbTable">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>AWB</th>
-            <th>PCS</th>
-            <th>Weight (Kg)</th>
-            <th>Receiver</th>
-            <th>Origin</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for awb in trashed_awbs %}
-        <tr id="awb-row-{{ awb.id }}">
-            <td>{{ awb.id }}</td>
-            <td>{{ awb.awb }}</td>
-            <td>{{ awb.awb_pcs }}</td>
-            <td>{{ awb.awb_kg }}</td>
-            <td>{{ awb.receiver_name }}</td>
-            <td>{{ awb.awb_type }}</td>
-            <td>
-                <a href="javascript:void(0);" class="button is-small is-info action-btn" 
-                   onclick="restoreAwb('{{ awb.id }}')">Restore</a> |
-                <a href="javascript:void(0);" class="button is-small is-danger action-btn" 
-                   onclick="confirmDelete('{{ awb.id }}', 'awb')">Delete Permanently</a> | 
-                <a class="button is-small is-info action-btn" target="_blank" href="{% url 'parcel_view' awb.id %}" data-action="View">View</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                <hr>
 
-<!-- Modal for confirming actions -->
-<div class="modal" id="confirmModal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Confirm <span id="actionName"></span></p>
-            <button class="delete" aria-label="close"></button>
-        </header>
-        <section class="modal-card-body">
-            <p>Are you sure you want to permanently delete this <span id="itemType"></span>? This action cannot be undone.</p>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-danger" id="confirmAction">Yes</button>
-            <button class="button cancel-btn">Cancel</button>
-        </footer>
+                <h5 class="text-primary">📦 Deleted AWBs</h5>
+                <div class="table-responsive">
+                    <table class="table datanew" id="awbTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>AWB</th>
+                                <th>Order Number</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for awb in trashed_awbs %}
+                            <tr id="awb-row-{{ awb.id }}">
+                                <td>{{ awb.id }}</td>
+                                <td>{{ awb.awb }}</td>
+                                <td>{{ awb.order_number }}</td>
+                                <td>{{ awb.sender_name }}</td>
+                                <td>{{ awb.receiver_name }}</td>
+                                <td>
+                                    <a href="javascript:void(0);" class="me-3" 
+                                       onclick="restoreAwb('{{ awb.id }}')"
+                                       title="Restore AWB">
+                                       <img src="{% static 'system/assets/img/icons/rotate.svg' %}" alt="img">
+                                    </a>
+                                    <a href="javascript:void(0);" class="me-3" 
+                                       onclick="confirmDelete('{{ awb.id }}', 'awb')"
+                                       title="Delete permanently">
+                                       <img src="{% static 'system/assets/img/icons/delete.svg' %}" alt="img">
+                                    </a>
+                                    <a class="me-3" target="_blank"
+                                       href="{% url 'parcel_view' awb.id %}"
+                                       title="View AWB details">
+                                       <img src="{% static 'system/assets/img/icons/eye.svg' %}" alt="img">
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">
+                                    <div class="alert alert-success">
+                                        <img src="{% static 'system/assets/img/icons/check-circle.svg' %}" alt="img"> No deleted AWBs found. Great!
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
-
-<!-- Modal for success message -->
-<div class="modal" id="successModal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Success</p>
-            <button class="delete" aria-label="close"></button>
-        </header>
-        <section class="modal-card-body">
-            <p id="successMessage">The item was successfully deleted.</p>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-success" id="closeSuccessModal">OK</button>
-        </footer>
-    </div>
-</div>
-
-<!-- Loader -->
-<div id="loader" style="display: none;">
-    <div class="spinner-border" role="status">
-        <span class="sr-only">Loading...</span>
-    </div>
-</div>
-
 {% endblock %}
 
 {% block script %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const actionButtons = document.querySelectorAll('.action-btn');
-    const confirmModal = document.getElementById('confirmModal');
-    const successModal = document.getElementById('successModal');
-    const closeSuccessModalButton = document.getElementById('closeSuccessModal');
-    const closeButton = confirmModal.querySelector('.delete');
-    const cancelButton = confirmModal.querySelector('.cancel-btn');
-    const confirmButton = confirmModal.querySelector('#confirmAction');
-    const actionName = document.getElementById('actionName');
-    const itemType = document.getElementById('itemType');
-    let deleteUrl = '';
-
-    closeButton.addEventListener('click', () => {
-        confirmModal.classList.remove('is-active');
-    });
-
-    cancelButton.addEventListener('click', () => {
-        confirmModal.classList.remove('is-active');
-    });
-
-    closeSuccessModalButton.addEventListener('click', () => {
-        successModal.classList.remove('is-active');
-    });
-
-    confirmButton.addEventListener('click', () => {
-        confirmModal.classList.remove('is-active');
-        fetch(deleteUrl, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        })
-        .then(response => {
-            if (response.ok) {
-                document.getElementById(`${itemType.textContent}-row-${deleteUrl.split('/').slice(-2, -1)[0]}`).remove();
-                showSuccessModal(`${itemType.textContent.charAt(0).toUpperCase() + itemType.textContent.slice(1)} permanently deleted.`);
-            } else {
-                alert(`Failed to delete the ${itemType.textContent}. Please try again.`);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(`An error occurred while deleting the ${itemType.textContent}.`);
-        });
-    });
-
-    function showSuccessModal(message) {
-        document.getElementById('successMessage').textContent = message;
-        successModal.classList.add('is-active');
-    }
-
-    // Function to handle permanent deletion for invoices and AWBs
-    function confirmDelete(id, type) {
-        deleteUrl = `/sifex/delete-${type}/permanently/${id}/`;
-        actionName.textContent = 'Delete Permanently';
-        itemType.textContent = type;
-        confirmModal.classList.add('is-active');
-    }
-
+$(document).ready(function() {
     // JavaScript function to handle restoration for invoices
     function restoreInvoice(invoiceId) {
-        if (confirm('Are you sure you want to restore this invoice?')) {
+        if (confirm('🔄 Restore this invoice?\n\n📋 What happens:\n• Invoice will be moved back to active invoices\n• AWB status will be updated based on invoice payment status\n• You can find it in the invoices list again')) {
+            // Show loading indicator
+            const restoreBtn = document.querySelector(`a[onclick="restoreInvoice('${invoiceId}')"]`);
+            const originalHtml = restoreBtn.innerHTML;
+            restoreBtn.innerHTML = '<img src="{% static "system/assets/img/icons/spinner.svg" %}" alt="loading">';
+            restoreBtn.style.pointerEvents = 'none';
+
             fetch(`/sifex/restore-invoice/${invoiceId}/`, {
                 method: 'POST',
                 headers: {
@@ -205,22 +169,36 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(response => {
                 if (response.ok) {
-                    document.getElementById(`invoice-row-${invoiceId}`).remove();
-                    alert('Invoice restored.');
+                    // Animate row removal
+                    const row = document.getElementById(`invoice-row-${invoiceId}`);
+                    row.style.backgroundColor = '#d4edda';
+                    row.style.transition = 'all 0.3s ease';
+                    
+                    setTimeout(() => {
+                        row.remove();
+                        // Show success message
+                        alert('✅ Invoice restored successfully!\n\n📄 The invoice is now back in your active invoices list.\n🔄 AWB status has been updated accordingly.');
+                    }, 500);
                 } else {
-                    alert('Failed to restore the invoice. Please try again.');
+                    // Restore button state
+                    restoreBtn.innerHTML = originalHtml;
+                    restoreBtn.style.pointerEvents = 'auto';
+                    alert('❌ Failed to restore the invoice. Please try again.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while restoring the invoice.');
+                // Restore button state
+                restoreBtn.innerHTML = originalHtml;
+                restoreBtn.style.pointerEvents = 'auto';
+                alert('❌ An error occurred while restoring the invoice.');
             });
         }
     }
 
     // JavaScript function to handle restoration for AWBs
     function restoreAwb(awbId) {
-        if (confirm('Are you sure you want to restore this AWB?')) {
+        if (confirm('🔄 Restore this AWB?\n\nThe AWB will be moved back to active status.')) {
             fetch(`/sifex/restore-awb/${awbId}/`, {
                 method: 'POST',
                 headers: {
@@ -231,45 +209,55 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => {
                 if (response.ok) {
                     document.getElementById(`awb-row-${awbId}`).remove();
-                    alert('AWB restored.');
+                    alert('✅ AWB restored successfully!');
                 } else {
-                    alert('Failed to restore the AWB. Please try again.');
+                    alert('❌ Failed to restore the AWB. Please try again.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while restoring the AWB.');
+                alert('❌ An error occurred while restoring the AWB.');
             });
         }
     }
-    
-    // Attach the functions to global scope for use in inline JavaScript in the template
-    window.confirmDelete = confirmDelete;
+
+    // Confirm delete function
+    function confirmDelete(id, type) {
+        if (confirm(`⚠️ Permanently delete this ${type}?\n\nThis action cannot be undone!`)) {
+            const url = `/sifex/delete-${type}/permanently/${id}/`;
+            
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById(`${type}-row-${id}`).remove();
+                    alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} permanently deleted.`);
+                } else {
+                    alert(`❌ Failed to delete the ${type}. Please try again.`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`❌ An error occurred while deleting the ${type}.`);
+            });
+        }
+    }
+
+    // Make functions globally available
     window.restoreInvoice = restoreInvoice;
     window.restoreAwb = restoreAwb;
+    window.confirmDelete = confirmDelete;
 
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('keyup', function () {
-        const filter = searchInput.value.toLowerCase();
-        const tables = ['invoiceTable', 'awbTable'];
-
-        tables.forEach(tableId => {
-            const table = document.getElementById(tableId);
-            const rows = table.getElementsByTagName('tr');
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                let match = false;
-                for (let j = 0; j < cells.length; j++) {
-                    if (cells[j]) {
-                        if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
-                            match = true;
-                            break;
-                        }
-                    }
-                }
-                rows[i].style.display = match ? '' : 'none';
-            }
+    // Simple search functionality
+    $('#searchInput').on('keyup', function() {
+        var value = $(this).val().toLowerCase();
+        $('#invoiceTable tbody tr, #awbTable tbody tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
         });
     });
 });

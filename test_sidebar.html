@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sidebar Menu Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .sidebar { width: 250px; background: #f8f9fa; height: 100vh; position: fixed; }
+        .submenu ul { display: none; padding-left: 20px; }
+        .submenu a.subdrop + ul { display: block !important; }
+        .menu-arrow { float: right; transition: transform 0.3s ease; }
+        .submenu a.subdrop .menu-arrow { transform: rotate(90deg); }
+        #sidebar-menu li a { display: block; padding: 10px; text-decoration: none; color: #333; }
+        #sidebar-menu li a:hover { background: #e9ecef; }
+        .submenu > a { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div id="sidebar-menu">
+            <ul>
+                <li><a href="#"><span>CONSOLE</span></a></li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><span>EXPORT</span> <span class="menu-arrow">▶</span></a>
+                    <ul>
+                        <li><a href="#"><span>Acceptance</span></a></li>
+                        <li><a href="#"><span>Manifest</span></a></li>
+                        <li><a href="#"><span>Load</span></a></li>
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><span>IMPORT</span> <span class="menu-arrow">▶</span></a>
+                    <ul>
+                        <li><a href="#"><span>Import</span></a></li>
+                        <li><a href="#"><span>Arrived</span></a></li>
+                        <li><a href="#"><span>Under Clearance</span></a></li>
+                        <li><a href="#"><span>Release</span></a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            console.log('Testing sidebar menu functionality...');
+            
+            $('#sidebar-menu .submenu > a').on('click', function(e) {
+                e.preventDefault();
+                console.log('Menu clicked:', $(this).find('span').first().text());
+                
+                var $submenu = $(this).next('ul');
+                var isOpen = $submenu.is(':visible');
+                
+                if (isOpen) {
+                    $submenu.slideUp();
+                    $(this).removeClass('subdrop');
+                } else {
+                    $('.submenu ul:visible').slideUp();
+                    $('.submenu > a').removeClass('subdrop');
+                    $submenu.slideDown();
+                    $(this).addClass('subdrop');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

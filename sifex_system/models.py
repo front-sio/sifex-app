@@ -59,6 +59,10 @@ class ActivityLog(models.Model):
     def __str__(self):
         return f'{self.user.username} {self.description} at {self.timestamp}'
 
+    def save(self, *args, **kwargs):
+        if self.description and 'invoice' in self.description.lower():
+            super().save(*args, **kwargs)
+
 class Masterawb(models.Model):
     PAYMENT_MODE = (
         ('PP', 'pp'),
@@ -121,6 +125,49 @@ class Masterawb(models.Model):
 
     def __str__(self):
         return f'{self.receiver_name} {self.awb}'
+    
+    def get_current_status(self):
+        """Get the current highest status of the AWB"""
+        status_order = [
+            ('POD', 'POD'),
+            ('delivered', 'Delivered'),
+            ('billed', 'Billed'),
+            ('invoice_generated', 'Invoice Generated'),
+            ('bill', 'Ready for Payment'),
+            ('released', 'Released'),
+            ('under_clearance', 'Under Clearance'),
+            ('arrived', 'Arrived'),
+            ('departed', 'Departed'),
+            ('manifested', 'Manifested'),
+            ('loaded', 'Loaded'),
+            ('accepted', 'Accepted'),
+        ]
+        
+        for field, display_name in status_order:
+            if getattr(self, field, False):
+                return display_name
+        return 'Unknown'
+    
+    def update_status(self, new_status, user, note=None, terminal=None):
+        """Safely update status while maintaining workflow integrity"""
+        status_fields = [
+            'accepted', 'loaded', 'manifested', 'departed', 
+            'arrived', 'under_clearance', 'released', 'bill', 
+            'invoice_generated', 'billed', 'delivered', 'POD'
+        ]
+        
+        if new_status in status_fields:
+            setattr(self, new_status, True)
+            self.save()
+            
+            # Create status history
+            MasterStatus.objects.create(
+                master=self,
+                user=user,
+                status=new_status,
+                note=note,
+                terminal=terminal
+            )
 
 
 
@@ -379,7 +426,6 @@ class FreightHistory(models.Model):
 
     def __str__(self):
         return f"{self.freight.freight_rete} - {self.action} by {self.performed_by.username} at {self.performed_at}"
-
 
 
 

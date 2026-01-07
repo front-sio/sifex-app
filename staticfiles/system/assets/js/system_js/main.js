@@ -1,6 +1,11 @@
 
   const renderMasterAwbChart = (data, labels) => {
-    const ctx2 = document.getElementById("chart-2").getContext("2d");
+    const chartElement = document.getElementById("chart-2");
+    if (!chartElement) {
+      console.log('Chart-2 element not found, skipping chart rendering');
+      return;
+    }
+    const ctx2 = chartElement.getContext("2d");
     const myChart2 = new Chart(ctx2, {
       type: "bar",
       data: {
@@ -26,7 +31,12 @@
 
 
   const renderSlaveAwbChart = (data, labels) => {
-    const ctx1 = document.getElementById("chart-1").getContext("2d");
+    const chartElement = document.getElementById("chart-1");
+    if (!chartElement) {
+      console.log('Chart-1 element not found, skipping chart rendering');
+      return;
+    }
+    const ctx1 = chartElement.getContext("2d");
     const myChart = new Chart(ctx1, {
       type: "doughnut",
       data: {
@@ -55,7 +65,12 @@
 
 
   const renderArrivalAwbChart = (data, labels) => {
-    const ctx3 = document.getElementById("chart-3").getContext("2d");
+    const chartElement = document.getElementById("chart-3");
+    if (!chartElement) {
+      console.log('Chart-3 element not found, skipping chart rendering');
+      return;
+    }
+    const ctx3 = chartElement.getContext("2d");
     const myChart3 = new Chart(ctx3, {
       type: "pie",
       data: {

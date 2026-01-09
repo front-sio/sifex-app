@@ -100,24 +100,18 @@ WSGI_APPLICATION = 'sifex.wsgi.application'
 
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# Use PostgreSQL database
-DATABASE_URL = "postgresql://postgres:anWTLHLryNYAsoexOMsVeOznaBftiYIB@junction.proxy.rlwy.net:32934/railway"
+DATABASE_URL = env('DATABASE_URL', default=None)
 
-# # Parse the database URL and configure DATABASES setting
-url = urlparse(DATABASE_URL)
-
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL is not set")
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': url.path[1:],  # Extract the DB name from the URL path
-        'USER': url.username,
-        'PASSWORD': url.password,
-        'HOST': url.hostname,
-        'PORT': url.port,
-    }
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,      # helps performance
+        ssl_require=False      # internal Dokploy network; set True only if using external SSL
+    )
 }
-
 
 # DATABASES = {
 #     'default': {

@@ -17,7 +17,7 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Count, Q
 from django.utils.timezone import now as timezone_now
 from django.db.models import Sum, F, FloatField, Value
-from django.db.models.functions import Cast, Replace
+from django.db.models.functions import Cast, Replace, NullIf
 from accounts.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -124,9 +124,9 @@ def accept_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             accepted=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -164,9 +164,9 @@ def accept_loaded_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             loaded=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -202,9 +202,9 @@ def accept_manifested_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             manifested=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -239,9 +239,9 @@ def accept_arrived_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             arrived=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -277,9 +277,9 @@ def accept_underclearance_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             under_clearance=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -314,9 +314,9 @@ def accept_release_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             released=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -352,9 +352,9 @@ def accept_delivered_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             billed=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -390,9 +390,9 @@ def accept_pod_console(request, year=None):
     pcs = (
         Masterawb.objects.filter(
             delivered=True,
-            deleted=False,
-            date_received__year=year
+            deleted=False
         )
+        .filter(Q(date_received__year=year) | Q(date_received__isnull=True))
         .only("id", "awb", "receiver_name", "date_received", "awb_pcs", "awb_kg", "order_number")
         .order_by("-date_received")
     )
@@ -458,11 +458,17 @@ def accept_parcel(request):
         width = request.POST.get('width')
         length = request.POST.get('length')
         currency = request.POST.get('currency')
-        date_received = request.POST.get('date_received')
+        date_received_raw = request.POST.get('date_received')
         expected_arrival_date = request.POST.get('expected_arrival_date')
         custom_value = request.POST.get('custom_value')
         payment_mode = request.POST.get('payment_mode')
         awb_type = request.POST.get('awb_type')
+
+        parsed_date_received = parse_date(date_received_raw) if date_received_raw else None
+        if parsed_date_received:
+            date_received_value = datetime.datetime.combine(parsed_date_received, datetime.time.min)
+        else:
+            date_received_value = timezone_now()
 
         parcel = Masterawb.objects.create(
             awb=awb, 
@@ -494,7 +500,7 @@ def accept_parcel(request):
             length=length,
             user=request.user,
             currency=currency,
-            date_received=date_received,
+            date_received=date_received_value,
             expected_arrival_date=expected_arrival_date,
             custom_value=custom_value,
             payment_mode=payment_mode,
@@ -1387,6 +1393,42 @@ def invoice_detail(request, invoice_id):
         )
         return HttpResponseNotFound("Invoice not found")
 
+@login_required
+@require_http_methods(["POST"])
+def mark_invoice_payment(request):
+    invoice_id = request.POST.get('invoice_id')
+    status = request.POST.get('status')
+    invoice_detail = request.POST.get('invoice_detail')
+
+    if not invoice_id or not status or not invoice_detail:
+        return HttpResponseBadRequest("Missing invoice data.")
+    if status not in ['paid', 'credited']:
+        return HttpResponseBadRequest("Invalid invoice status.")
+
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    invoice.status = status
+    invoice.invoice_detail = invoice_detail
+    invoice.date_of_payment = timezone_now().date()
+    invoice.deleted = False
+    invoice.save(update_fields=["status", "invoice_detail", "date_of_payment", "deleted"])
+
+    awb = invoice.awb
+    if awb:
+        awb.bill = False
+        awb.invoice_generated = True
+        awb.billed = True
+        awb.save()
+
+        master_status = 'invoice paid' if status == 'paid' else 'invoice credited'
+        MasterStatus.objects.create(master=awb, user=request.user, status=master_status)
+
+    ActivityLog.objects.create(
+        user=request.user,
+        activity_type='UPDATE',
+        description=f'Updated payment status for Invoice ID: {invoice.id} to {status}'
+    )
+    return redirect('invoice-detail', invoice_id=invoice.id)
+
 
 
 
@@ -1398,7 +1440,7 @@ class InvoiceListView(View):
         search_query = request.GET.get('search', '').strip()
 
         # Default to current year
-        now = timezone.now()
+        now = timezone_now()
         try:
             selected_year = int(selected_year)
         except (TypeError, ValueError):
@@ -1406,7 +1448,7 @@ class InvoiceListView(View):
 
         # Base queryset
         invoices = Invoice.objects.prefetch_related('awb')\
-                          .filter(date__year=selected_year)\
+                          .filter(date__year=selected_year, deleted=False)\
                           .order_by('-date')
 
 
@@ -1422,7 +1464,7 @@ class InvoiceListView(View):
             )
       
         # Get available years (distinct)
-        years_qs = Invoice.objects.dates('date', 'year', order='DESC')
+        years_qs = Invoice.objects.filter(deleted=False).dates('date', 'year', order='DESC')
         available_years = [d.year for d in years_qs]
 
         context = {
@@ -1435,11 +1477,7 @@ class InvoiceListView(View):
         return render(request, 'invoice/invoice-list.html', context)
 
     def post(self, request):
-        # Bulk delete
-        invoice_ids = request.POST.getlist("invoice_id")
-        if invoice_ids:
-            Invoice.objects.filter(id__in=invoice_ids).delete()
-        return redirect(request.get_full_path())
+        return HttpResponseNotAllowed(['GET'])
 
 
 
@@ -1657,6 +1695,9 @@ class DeleteInvoiceView(LoginRequiredMixin, View):
         Handles deletion of single or multiple invoices via POST.
         Expects a hidden input `invoice_ids` with comma-separated IDs.
         """
+        if request.POST.get('confirm_delete') != '1':
+            return JsonResponse({'success': False, 'message': 'Delete confirmation missing.'})
+
         invoice_ids_str = request.POST.get('invoice_ids', '')
         if not invoice_ids_str:
             return JsonResponse({'success': False, 'message': 'No invoice IDs provided.'})
@@ -1671,13 +1712,17 @@ class DeleteInvoiceView(LoginRequiredMixin, View):
                 invoice.save()
 
                 awb = invoice.awb
-                if awb.billed:
-                    awb.billed = False
+                if awb:
                     awb.bill = True
-                elif awb.invoice_generated:
                     awb.invoice_generated = False
-                    awb.bill = True
-                awb.save()
+                    awb.billed = False
+                    awb.save()
+                    MasterStatus.objects.create(
+                        master=awb,
+                        user=request.user,
+                        status='billing',
+                        terminal=awb.awb_type
+                    )
 
                 ActivityLog.objects.create(
                     user=request.user,
@@ -1946,7 +1991,11 @@ def generate_invoice_pdf(request, invoice_id):
 
 @login_required
 def invoice_generation(request):
-    pcs = Masterawb.objects.filter(bill=True, deleted=False)
+    pcs = (
+        Masterawb.objects.filter(deleted=False, invoice_generated=False, billed=False)
+        .filter(Q(bill=True) | Q(master_status__status='billing'))
+        .distinct()
+    )
     exchange_rate = SystemPreference.objects.first()
     ActivityLog.objects.create(
         user=request.user,
@@ -1972,11 +2021,25 @@ def list_of_delivered_awb(request):
 @login_required
 def list_of_undelivered_awb(request):
     # Tunatafuta AWBs ambazo hazijafika "delivered" lakini zina status zote
+    billing_statuses = ['bill', 'billing']
+    arrival_statuses = ['arrival', 'arrived']
     undelivered_awbs = Masterawb.objects.filter(
         delivered=False,  # Hazijafika delivered
-        master_status__status__in=['arrival', 'underclearance', 'released', 'bill', 'invoice paid']
+        master_status__status__in=[
+            *arrival_statuses,
+            'underclearance',
+            'released',
+            *billing_statuses,
+            'invoice paid',
+        ]
     ).annotate(
-        status_count=Count('master_status__status', filter=Q(master_status__status__in=['arrival', 'underclearance', 'released', 'bill', 'invoice paid']))
+        status_count=Count('master_status__status', filter=Q(master_status__status__in=[
+            *arrival_statuses,
+            'underclearance',
+            'released',
+            *billing_statuses,
+            'invoice paid',
+        ]))
     ).filter(
         status_count=5  # Zina hizi status zote 5
     ).order_by('-date_received')
@@ -2003,12 +2066,21 @@ def list_of_paid_awb(request):
 
 @login_required
 def list_of_unpaid_awb(request):
+    invoices = Invoice.objects.filter(status='unpaid', deleted=False).order_by('-date')
+    total_invoices = invoices.count()
+    total_amount_usd = invoices.aggregate(total_usd=Sum('total_amount_usd'))['total_usd'] or 0
+    total_amount_tzs = invoices.aggregate(total_tzs=Sum('total_amount_tzs'))['total_tzs'] or 0
     ActivityLog.objects.create(
         user=request.user,
         activity_type='READ',
         description='Viewed list of unpaid AWBs'
     )
-    return render(request, 'system/reports/unpaid-goods.html', {})
+    return render(request, 'system/reports/unpaid-goods.html', {
+        'invoices': invoices,
+        'total_invoices': total_invoices,
+        'total_amount_usd': total_amount_usd,
+        'total_amount_tzs': total_amount_tzs,
+    })
 
 @login_required
 def list_of_credited_awb(request):
@@ -2018,6 +2090,431 @@ def list_of_credited_awb(request):
         description='Viewed list of credited AWBs'
     )
     return render(request, 'system/reports/credited-goods.html', {})
+
+
+@login_required
+def all_awb_report(request):
+    pcs = []
+    total_awbs = 0
+    total_kg = 0
+    total_pcs = 0
+    total_freight = 0
+    total_chargable_weight = 0
+    date_from = None
+    date_to = None
+
+    if request.method == "POST":
+        date_from = request.POST.get('date_from')
+        date_to = request.POST.get('date_to')
+        if date_from and date_to:
+            pcs = Masterawb.objects.filter(
+                deleted=False,
+                date_received__range=[date_from, date_to]
+            )
+            cleaned_freight = Replace(
+                Replace(
+                    Replace(
+                        Replace(Replace(Replace('freight', Value('$'), Value('')), Value(','), Value('')),
+                        Value('NULL'), Value('')),
+                        Value('N/A'),
+                        Value('')
+                    ),
+                    Value('n/a'),
+                    Value('')
+                ),
+                Value('Error'),
+                Value('')
+            )
+            cleaned_freight = Replace(cleaned_freight, Value('error'), Value(''))
+            cleaned_freight = Replace(Replace(cleaned_freight, Value('..'), Value('.')), Value('..'), Value('.'))
+            cleaned_freight = NullIf(cleaned_freight, Value(''))
+            cleaned_chargable_weight = Replace(
+                Replace(Replace(Replace('chargable_weight', Value(','), Value('')), Value('NULL'), Value('')), Value('Error'), Value('')),
+                Value('N/A'),
+                Value('')
+            )
+            cleaned_chargable_weight = Replace(cleaned_chargable_weight, Value('error'), Value(''))
+            cleaned_chargable_weight = Replace(Replace(cleaned_chargable_weight, Value('..'), Value('.')), Value('..'), Value('.'))
+            cleaned_chargable_weight = NullIf(cleaned_chargable_weight, Value(''))
+            cleaned_pcs = Replace(
+                Replace(Replace(Replace('awb_pcs', Value(','), Value('')), Value('NULL'), Value('')), Value('Error'), Value('')),
+                Value('N/A'),
+                Value('')
+            )
+            cleaned_pcs = Replace(cleaned_pcs, Value('error'), Value(''))
+            cleaned_pcs = Replace(Replace(cleaned_pcs, Value('..'), Value('.')), Value('..'), Value('.'))
+            cleaned_pcs = NullIf(cleaned_pcs, Value(''))
+            pcs = pcs.annotate(
+                cleaned_freight=Cast(cleaned_freight, FloatField()),
+                cleaned_chargable_weight=Cast(cleaned_chargable_weight, FloatField()),
+                cleaned_pcs=Cast(cleaned_pcs, FloatField())
+            )
+            total_awbs = pcs.count()
+            total_kg = pcs.aggregate(total_kg=Sum('awb_kg'))['total_kg'] or 0
+            total_pcs = pcs.aggregate(total_pcs=Sum('cleaned_pcs'))['total_pcs'] or 0
+            total_freight = pcs.aggregate(total_freight=Sum('cleaned_freight'))['total_freight'] or 0
+            total_chargable_weight = pcs.aggregate(total_cw=Sum('cleaned_chargable_weight'))['total_cw'] or 0
+
+            ActivityLog.objects.create(
+                user=request.user,
+                activity_type='READ',
+                description=f'Viewed all AWB report from {date_from} to {date_to}'
+            )
+
+    return render(request, 'system/reports/all-awb-report.html', {
+        'pcs': pcs,
+        'total_awbs': total_awbs,
+        'total_kg': total_kg,
+        'total_pcs': total_pcs,
+        'total_freight': total_freight,
+        'total_chargable_weight': total_chargable_weight,
+        'date_from': date_from,
+        'date_to': date_to,
+    })
+
+
+@login_required
+def export_all_awb_report(request):
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    if not date_from or not date_to:
+        return HttpResponseBadRequest("Missing date range.")
+
+    pcs = Masterawb.objects.filter(
+        deleted=False,
+        date_received__range=[date_from, date_to]
+    )
+    cleaned_freight = Replace(
+        Replace(
+            Replace(
+                Replace(Replace(Replace('freight', Value('$'), Value('')), Value(','), Value('')),
+                Value('NULL'), Value('')),
+                Value('N/A'),
+                Value('')
+            ),
+            Value('n/a'),
+            Value('')
+        ),
+        Value('Error'),
+        Value('')
+    )
+    cleaned_freight = Replace(cleaned_freight, Value('error'), Value(''))
+    cleaned_freight = Replace(Replace(cleaned_freight, Value('..'), Value('.')), Value('..'), Value('.'))
+    cleaned_freight = NullIf(cleaned_freight, Value(''))
+    cleaned_chargable_weight = Replace(
+        Replace(Replace(Replace('chargable_weight', Value(','), Value('')), Value('NULL'), Value('')), Value('Error'), Value('')),
+        Value('N/A'),
+        Value('')
+    )
+    cleaned_chargable_weight = Replace(cleaned_chargable_weight, Value('error'), Value(''))
+    cleaned_chargable_weight = Replace(Replace(cleaned_chargable_weight, Value('..'), Value('.')), Value('..'), Value('.'))
+    cleaned_chargable_weight = NullIf(cleaned_chargable_weight, Value(''))
+    cleaned_pcs = Replace(
+        Replace(Replace(Replace('awb_pcs', Value(','), Value('')), Value('NULL'), Value('')), Value('Error'), Value('')),
+        Value('N/A'),
+        Value('')
+    )
+    cleaned_pcs = Replace(cleaned_pcs, Value('error'), Value(''))
+    cleaned_pcs = Replace(Replace(cleaned_pcs, Value('..'), Value('.')), Value('..'), Value('.'))
+    cleaned_pcs = NullIf(cleaned_pcs, Value(''))
+    pcs = pcs.annotate(
+        cleaned_freight=Cast(cleaned_freight, FloatField()),
+        cleaned_chargable_weight=Cast(cleaned_chargable_weight, FloatField()),
+        cleaned_pcs=Cast(cleaned_pcs, FloatField())
+    )
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("All AWB")
+
+    headers = [
+        "AWB",
+        "Order number",
+        "Sender name",
+        "Receiver name",
+        "AWB PCS",
+        "AWB KG",
+        "Chargable weight",
+        "Freight",
+        "Currency",
+        "Date received",
+    ]
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    for row_num, pc in enumerate(pcs, start=1):
+        worksheet.write(row_num, 0, pc.awb)
+        worksheet.write(row_num, 1, pc.order_number)
+        worksheet.write(row_num, 2, pc.sender_name)
+        worksheet.write(row_num, 3, pc.receiver_name)
+        worksheet.write(row_num, 4, pc.awb_pcs)
+        worksheet.write(row_num, 5, pc.awb_kg)
+        worksheet.write(row_num, 6, pc.chargable_weight)
+        worksheet.write(row_num, 7, pc.freight)
+        worksheet.write(row_num, 8, pc.currency)
+        worksheet.write(row_num, 9, pc.date_received.strftime('%Y-%m-%d') if pc.date_received else "")
+
+    workbook.close()
+    output.seek(0)
+
+    ActivityLog.objects.create(
+        user=request.user,
+        activity_type='READ',
+        description=f'Exported all AWB report from {date_from} to {date_to}'
+    )
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="all_awb_{date_from}_to_{date_to}.xlsx"'
+    return response
+
+
+@login_required
+def all_reports_dashboard(request):
+    date_from = None
+    date_to = None
+    paid_invoices = Invoice.objects.none()
+    unpaid_invoices = Invoice.objects.none()
+    delivered_awbs = Masterawb.objects.none()
+    undelivered_awbs = Masterawb.objects.none()
+
+    totals = {
+        "paid_count": 0,
+        "paid_usd": 0,
+        "paid_tzs": 0,
+        "unpaid_count": 0,
+        "unpaid_usd": 0,
+        "unpaid_tzs": 0,
+        "delivered_count": 0,
+        "delivered_kg": 0,
+        "undelivered_count": 0,
+        "undelivered_kg": 0,
+    }
+
+    if request.method == "POST":
+        date_from = request.POST.get("date_from")
+        date_to = request.POST.get("date_to")
+        parsed_from = parse_date(date_from) if date_from else None
+        parsed_to = parse_date(date_to) if date_to else None
+        if parsed_from and parsed_to:
+            paid_invoices = Invoice.objects.filter(
+                date__range=[parsed_from, parsed_to],
+                status="paid",
+                deleted=False
+            )
+            unpaid_invoices = Invoice.objects.filter(
+                date__range=[parsed_from, parsed_to],
+                status="unpaid",
+                deleted=False
+            )
+            delivered_awbs = Masterawb.objects.filter(
+                delivered=True,
+                deleted=False,
+                date_received__date__range=[parsed_from, parsed_to]
+            )
+
+            billing_statuses = ['bill', 'billing']
+            arrival_statuses = ['arrival', 'arrived']
+            undelivered_awbs = Masterawb.objects.filter(
+                delivered=False,
+                deleted=False,
+                date_received__date__range=[parsed_from, parsed_to],
+                master_status__status__in=[
+                    *arrival_statuses,
+                    'underclearance',
+                    'released',
+                    *billing_statuses,
+                    'invoice paid',
+                ]
+            ).annotate(
+                status_count=Count('master_status__status', filter=Q(master_status__status__in=[
+                    *arrival_statuses,
+                    'underclearance',
+                    'released',
+                    *billing_statuses,
+                    'invoice paid',
+                ]))
+            ).filter(
+                status_count=5
+            ).order_by('-date_received')
+
+            totals["paid_count"] = paid_invoices.count()
+            totals["paid_usd"] = paid_invoices.aggregate(total=Sum('total_amount_usd'))['total'] or 0
+            totals["paid_tzs"] = paid_invoices.aggregate(total=Sum('total_amount_tzs'))['total'] or 0
+            totals["unpaid_count"] = unpaid_invoices.count()
+            totals["unpaid_usd"] = unpaid_invoices.aggregate(total=Sum('total_amount_usd'))['total'] or 0
+            totals["unpaid_tzs"] = unpaid_invoices.aggregate(total=Sum('total_amount_tzs'))['total'] or 0
+            totals["delivered_count"] = delivered_awbs.count()
+            totals["delivered_kg"] = delivered_awbs.aggregate(total=Sum('awb_kg'))['total'] or 0
+            totals["undelivered_count"] = undelivered_awbs.count()
+            totals["undelivered_kg"] = undelivered_awbs.aggregate(total=Sum('awb_kg'))['total'] or 0
+
+            ActivityLog.objects.create(
+                user=request.user,
+                activity_type='READ',
+                description=f'Viewed reports dashboard from {date_from} to {date_to}'
+            )
+
+    return render(request, 'system/reports/all-reports-dashboard.html', {
+        'date_from': date_from,
+        'date_to': date_to,
+        'paid_invoices': paid_invoices,
+        'unpaid_invoices': unpaid_invoices,
+        'delivered_awbs': delivered_awbs,
+        'undelivered_awbs': undelivered_awbs,
+        'totals': totals,
+    })
+
+
+@login_required
+def export_reports_dashboard(request):
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    parsed_from = parse_date(date_from) if date_from else None
+    parsed_to = parse_date(date_to) if date_to else None
+    if not parsed_from or not parsed_to:
+        return HttpResponseBadRequest("Missing date range.")
+
+    paid_invoices = Invoice.objects.filter(
+        date__range=[parsed_from, parsed_to],
+        status="paid",
+        deleted=False
+    )
+    unpaid_invoices = Invoice.objects.filter(
+        date__range=[parsed_from, parsed_to],
+        status="unpaid",
+        deleted=False
+    )
+    delivered_awbs = Masterawb.objects.filter(
+        delivered=True,
+        deleted=False,
+        date_received__date__range=[parsed_from, parsed_to]
+    )
+
+    billing_statuses = ['bill', 'billing']
+    arrival_statuses = ['arrival', 'arrived']
+    undelivered_awbs = Masterawb.objects.filter(
+        delivered=False,
+        deleted=False,
+        date_received__date__range=[parsed_from, parsed_to],
+        master_status__status__in=[
+            *arrival_statuses,
+            'underclearance',
+            'released',
+            *billing_statuses,
+            'invoice paid',
+        ]
+    ).annotate(
+        status_count=Count('master_status__status', filter=Q(master_status__status__in=[
+            *arrival_statuses,
+            'underclearance',
+            'released',
+            *billing_statuses,
+            'invoice paid',
+        ]))
+    ).filter(
+        status_count=5
+    ).order_by('-date_received')
+
+    totals = {
+        "paid_count": paid_invoices.count(),
+        "paid_usd": paid_invoices.aggregate(total=Sum('total_amount_usd'))['total'] or 0,
+        "paid_tzs": paid_invoices.aggregate(total=Sum('total_amount_tzs'))['total'] or 0,
+        "unpaid_count": unpaid_invoices.count(),
+        "unpaid_usd": unpaid_invoices.aggregate(total=Sum('total_amount_usd'))['total'] or 0,
+        "unpaid_tzs": unpaid_invoices.aggregate(total=Sum('total_amount_tzs'))['total'] or 0,
+        "delivered_count": delivered_awbs.count(),
+        "delivered_kg": delivered_awbs.aggregate(total=Sum('awb_kg'))['total'] or 0,
+        "undelivered_count": undelivered_awbs.count(),
+        "undelivered_kg": undelivered_awbs.aggregate(total=Sum('awb_kg'))['total'] or 0,
+    }
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+
+    summary = workbook.add_worksheet("Summary")
+    summary_headers = ["Metric", "Value"]
+    for col_num, header in enumerate(summary_headers):
+        summary.write(0, col_num, header)
+    summary_rows = [
+        ("Paid invoices", totals["paid_count"]),
+        ("Paid amount USD", totals["paid_usd"]),
+        ("Paid amount TZS", totals["paid_tzs"]),
+        ("Unpaid invoices", totals["unpaid_count"]),
+        ("Unpaid amount USD", totals["unpaid_usd"]),
+        ("Unpaid amount TZS", totals["unpaid_tzs"]),
+        ("Delivered AWB", totals["delivered_count"]),
+        ("Delivered KG", totals["delivered_kg"]),
+        ("Undelivered AWB", totals["undelivered_count"]),
+        ("Undelivered KG", totals["undelivered_kg"]),
+    ]
+    for row_num, (label, value) in enumerate(summary_rows, start=1):
+        summary.write(row_num, 0, label)
+        summary.write(row_num, 1, value)
+
+    paid_sheet = workbook.add_worksheet("Paid Invoices")
+    paid_headers = ["Invoice", "AWB", "Customer", "Date", "Due Date", "USD", "TZS"]
+    for col_num, header in enumerate(paid_headers):
+        paid_sheet.write(0, col_num, header)
+    for row_num, inv in enumerate(paid_invoices, start=1):
+        paid_sheet.write(row_num, 0, inv.id)
+        paid_sheet.write(row_num, 1, inv.awb.awb if inv.awb else "")
+        paid_sheet.write(row_num, 2, inv.customer)
+        paid_sheet.write(row_num, 3, inv.date.strftime('%Y-%m-%d') if inv.date else "")
+        paid_sheet.write(row_num, 4, inv.due_date.strftime('%Y-%m-%d') if inv.due_date else "")
+        paid_sheet.write(row_num, 5, float(inv.total_amount_usd or 0))
+        paid_sheet.write(row_num, 6, float(inv.total_amount_tzs or 0))
+
+    unpaid_sheet = workbook.add_worksheet("Unpaid Invoices")
+    for col_num, header in enumerate(paid_headers):
+        unpaid_sheet.write(0, col_num, header)
+    for row_num, inv in enumerate(unpaid_invoices, start=1):
+        unpaid_sheet.write(row_num, 0, inv.id)
+        unpaid_sheet.write(row_num, 1, inv.awb.awb if inv.awb else "")
+        unpaid_sheet.write(row_num, 2, inv.customer)
+        unpaid_sheet.write(row_num, 3, inv.date.strftime('%Y-%m-%d') if inv.date else "")
+        unpaid_sheet.write(row_num, 4, inv.due_date.strftime('%Y-%m-%d') if inv.due_date else "")
+        unpaid_sheet.write(row_num, 5, float(inv.total_amount_usd or 0))
+        unpaid_sheet.write(row_num, 6, float(inv.total_amount_tzs or 0))
+
+    delivered_sheet = workbook.add_worksheet("Delivered AWB")
+    delivered_headers = ["AWB", "Order number", "Receiver", "PCS", "KG", "Date received"]
+    for col_num, header in enumerate(delivered_headers):
+        delivered_sheet.write(0, col_num, header)
+    for row_num, awb in enumerate(delivered_awbs, start=1):
+        delivered_sheet.write(row_num, 0, awb.awb)
+        delivered_sheet.write(row_num, 1, awb.order_number)
+        delivered_sheet.write(row_num, 2, awb.receiver_name)
+        delivered_sheet.write(row_num, 3, awb.awb_pcs)
+        delivered_sheet.write(row_num, 4, awb.awb_kg)
+        delivered_sheet.write(row_num, 5, awb.date_received.strftime('%Y-%m-%d') if awb.date_received else "")
+
+    undelivered_sheet = workbook.add_worksheet("Undelivered AWB")
+    for col_num, header in enumerate(delivered_headers):
+        undelivered_sheet.write(0, col_num, header)
+    for row_num, awb in enumerate(undelivered_awbs, start=1):
+        undelivered_sheet.write(row_num, 0, awb.awb)
+        undelivered_sheet.write(row_num, 1, awb.order_number)
+        undelivered_sheet.write(row_num, 2, awb.receiver_name)
+        undelivered_sheet.write(row_num, 3, awb.awb_pcs)
+        undelivered_sheet.write(row_num, 4, awb.awb_kg)
+        undelivered_sheet.write(row_num, 5, awb.date_received.strftime('%Y-%m-%d') if awb.date_received else "")
+
+    workbook.close()
+    output.seek(0)
+
+    ActivityLog.objects.create(
+        user=request.user,
+        activity_type='READ',
+        description=f'Exported reports dashboard from {date_from} to {date_to}'
+    )
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename=\"reports_dashboard_{date_from}_to_{date_to}.xlsx\"'
+    return response
 
 @login_required
 def add_customer(request):
@@ -2092,12 +2589,22 @@ def undelivered_report(request):
         date_from = request.POST.get('date_from')
         date_to = request.POST.get('date_to')
 
+        status_filters = [
+            'arrived',
+            'arrival',
+            'underclearance',
+            'under clearance',
+            'released',
+            'invoice credited',
+            'invoice paid',
+        ]
+
         # Filter for undelivered pcs within the date range and specific statuses
         pcs = Masterawb.objects.filter(
             delivered=False,  # AWBs that are not yet delivered
             date_received__range=[date_from, date_to]  # Date range filter
         ).filter(
-            master_status__status__in=['arrived', 'under clearance', 'released', 'invoice credited', 'invoice paid']  # Status filter
+            master_status__status__in=status_filters  # Status filter
         ).distinct()
 
         # Calculate total undelivered count and total weight
@@ -2204,7 +2711,7 @@ def unpaid_report(request):
     if request.method == "POST":
         date_from = request.POST.get('date_from')
         date_to = request.POST.get('date_to')
-        invoices = Invoice.objects.filter(date_of_payment__gte=date_from, date_of_payment__lte=date_to, status='unpaid')
+        invoices = Invoice.objects.filter(date__gte=date_from, date__lte=date_to, status='unpaid', deleted=False)
         
         total_invoices = invoices.count()
         total_amount_usd = invoices.aggregate(total_usd=Sum('total_amount_usd'))['total_usd'] or 0
@@ -2637,10 +3144,17 @@ def restore_invoice(request, id):
     invoice.deleted = False
     invoice.save()
 
-    if invoice.get_status == 'paid' or invoice.get_status == 'credited':
-        awb.bill=False 
-        awb.invoice_generated = True
+    if awb:
+        awb.bill = True
+        awb.invoice_generated = False
+        awb.billed = False
         awb.save()
+        MasterStatus.objects.create(
+            master=awb,
+            user=request.user,
+            status='billing',
+            terminal=awb.awb_type
+        )
 
     ActivityLog.objects.create(
         user=request.user,

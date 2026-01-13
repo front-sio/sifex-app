@@ -1,0 +1,253 @@
+{% extends 'system/app/index.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Reports Dashboard{% endblock %}
+
+{% block page %}Reports Dashboard{% endblock %}
+{% block slogan %}Paid, Unpaid, Delivered, Undelivered{% endblock slogan %}
+
+{% block style %}
+<style>
+    .hide-accept-form, .hide-response-form, .hide-add-form {
+        display: none;
+    }
+    .report-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .report-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .report-card {
+        background: #fff;
+        border: 1px solid #e6e6e6;
+        border-radius: 6px;
+        padding: 12px 14px;
+    }
+    .report-card h5 {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: #555;
+    }
+    .report-card .value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #222;
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 20px 0 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title"></div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="report-actions">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="date_from" class="mb-0">Date From</label>
+                <input type="date" id="date_from" name="date_from" class="form-control" value="{{ date_from }}" required>
+            </div>
+            <div class="form-group">
+                <label for="date_to" class="mb-0">Date To</label>
+                <input type="date" id="date_to" name="date_to" class="form-control" value="{{ date_to }}" required>
+            </div>
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Generate</button>
+            </div>
+            <div class="form-group mt-4">
+                <a id="export-link" class="btn btn-success" href="#">Export Excel</a>
+            </div>
+        </form>
+
+        <div class="report-cards">
+            <div class="report-card">
+                <h5>Paid Invoices</h5>
+                <div class="value">{{ totals.paid_count }}</div>
+                <div>USD {{ totals.paid_usd }}</div>
+                <div>TZS {{ totals.paid_tzs }}</div>
+            </div>
+            <div class="report-card">
+                <h5>Unpaid Invoices</h5>
+                <div class="value">{{ totals.unpaid_count }}</div>
+                <div>USD {{ totals.unpaid_usd }}</div>
+                <div>TZS {{ totals.unpaid_tzs }}</div>
+            </div>
+            <div class="report-card">
+                <h5>Delivered AWB</h5>
+                <div class="value">{{ totals.delivered_count }}</div>
+                <div>KG {{ totals.delivered_kg }}</div>
+            </div>
+            <div class="report-card">
+                <h5>Undelivered AWB</h5>
+                <div class="value">{{ totals.undelivered_count }}</div>
+                <div>KG {{ totals.undelivered_kg }}</div>
+            </div>
+        </div>
+
+        <div class="section-title">Paid Invoices</div>
+        <div class="table-responsive">
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Tracking</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Due Date</th>
+                        <th>USD</th>
+                        <th>TZS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in paid_invoices %}
+                    <tr>
+                        <td>#{{ invoice.id }}</td>
+                        <td>{{ invoice.awb.awb }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                        <td>{{ invoice.due_date|date:"Y-m-d" }}</td>
+                        <td>{{ invoice.total_amount_usd }}</td>
+                        <td>{{ invoice.total_amount_tzs }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center">No paid invoices for this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-title">Unpaid Invoices</div>
+        <div class="table-responsive">
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Tracking</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Due Date</th>
+                        <th>USD</th>
+                        <th>TZS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in unpaid_invoices %}
+                    <tr>
+                        <td>#{{ invoice.id }}</td>
+                        <td>{{ invoice.awb.awb }}</td>
+                        <td>{{ invoice.customer }}</td>
+                        <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                        <td>{{ invoice.due_date|date:"Y-m-d" }}</td>
+                        <td>{{ invoice.total_amount_usd }}</td>
+                        <td>{{ invoice.total_amount_tzs }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center">No unpaid invoices for this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-title">Delivered AWB</div>
+        <div class="table-responsive">
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <th>AWB</th>
+                        <th>Order</th>
+                        <th>Receiver</th>
+                        <th>PCS</th>
+                        <th>KG</th>
+                        <th>Date Received</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for awb in delivered_awbs %}
+                    <tr>
+                        <td>{{ awb.awb }}</td>
+                        <td>{{ awb.order_number }}</td>
+                        <td>{{ awb.receiver_name }}</td>
+                        <td>{{ awb.awb_pcs }}</td>
+                        <td>{{ awb.awb_kg }}</td>
+                        <td>{{ awb.date_received|date:"Y-m-d" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center">No delivered AWB for this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-title">Undelivered AWB</div>
+        <div class="table-responsive">
+            <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
+                <thead>
+                    <tr>
+                        <th>AWB</th>
+                        <th>Order</th>
+                        <th>Receiver</th>
+                        <th>PCS</th>
+                        <th>KG</th>
+                        <th>Date Received</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for awb in undelivered_awbs %}
+                    <tr>
+                        <td>{{ awb.awb }}</td>
+                        <td>{{ awb.order_number }}</td>
+                        <td>{{ awb.receiver_name }}</td>
+                        <td>{{ awb.awb_pcs }}</td>
+                        <td>{{ awb.awb_kg }}</td>
+                        <td>{{ awb.date_received|date:"Y-m-d" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center">No undelivered AWB for this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#date_from", { dateFormat: "Y-m-d", allowInput: true });
+    flatpickr("#date_to", { dateFormat: "Y-m-d", allowInput: true });
+
+    const exportLink = document.getElementById('export-link');
+    const dateFrom = document.getElementById('date_from');
+    const dateTo = document.getElementById('date_to');
+
+    function updateExportLink() {
+        if (dateFrom.value && dateTo.value) {
+            exportLink.href = `{% url 'reports-dashboard-export' %}?date_from=${dateFrom.value}&date_to=${dateTo.value}`;
+        } else {
+            exportLink.href = '#';
+        }
+    }
+
+    dateFrom.addEventListener('change', updateExportLink);
+    dateTo.addEventListener('change', updateExportLink);
+    updateExportLink();
+});
+</script>
+{% endblock %}

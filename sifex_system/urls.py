@@ -92,6 +92,7 @@ urlpatterns = [
     path('print_label/<int:pk>/', print_label, name='print_label'),
     path('invoice/pdf/<int:invoice_id>/', generate_invoice_pdf, name='invoice_pdf'),
     path('invoice_detail/<int:invoice_id>/', invoice_detail, name='invoice-detail'),
+    path('invoice/mark-payment/', mark_invoice_payment, name='invoice-mark-payment'),
 
     path('generate_pdf/', generate_pdf, name='generate_pdf'),
     path('generate_spreadsheet/', generate_spreadsheet, name='generate_spreadsheet'),
@@ -106,6 +107,10 @@ urlpatterns = [
     path('paid-goods/', list_of_paid_awb, name="paid-goods"),
     path('unpaid-goods/', list_of_unpaid_awb, name="unpaid-goods"),
     path('credited-goods/', list_of_credited_awb, name="credited-goods"),
+    path('all-awb-report/', all_awb_report, name="all-awb-report"),
+    path('all-awb-report/export/', export_all_awb_report, name="all-awb-report-export"),
+    path('reports-dashboard/', all_reports_dashboard, name="reports-dashboard"),
+    path('reports-dashboard/export/', export_reports_dashboard, name="reports-dashboard-export"),
 
     path('delivered_report', delivered_report, name="delivered_report"),
     path('undelivered_report/', undelivered_report, name="undelivered_report"),

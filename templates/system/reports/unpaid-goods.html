@@ -104,6 +104,13 @@
     <div class="card-content">
         <div class="content table-responsive">
             <button onclick="window.print()" class="btn btn-primary mb-3">Print Report</button>
+            {% if invoices %}
+            <div class="mb-4">
+                <h4>Total Unpaid Invoices: {{ total_invoices }}</h4>
+                <h4>Total Amount (USD): {{ total_amount_usd }}</h4>
+                <h4>Total Amount (TZS): {{ total_amount_tzs }}</h4>
+            </div>
+            {% endif %}
             <table class="table datanew is-fullwidth is-bordered is-hoverable is-striped">
                 <thead>
                     <tr>

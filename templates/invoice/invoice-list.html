@@ -46,6 +46,14 @@
         margin-top: 10px;
     }
 
+    .invoice-filter {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
     /* Fix Bootstrap modal z-index conflicts */
     .modal {
         z-index: 2000 !important;
@@ -100,6 +108,17 @@
             {% endif %}
         </div>
 
+        <!-- Status Filter (Client-side) -->
+        <div class="invoice-filter">
+            <label for="id_status_filter" class="mb-0">Status</label>
+            <select id="id_status_filter" class="form-control" style="min-width: 180px;">
+                <option value="">All</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="paid">Paid</option>
+                <option value="credited">Credited</option>
+            </select>
+        </div>
+
         <!-- Invoice Table -->
         <div class="table-responsive mt-3">
             <table class="table datanew table-hover">
@@ -117,7 +136,7 @@
                 </thead>
                 <tbody>
                     {% for invoice in invoices %}
-                    <tr id="invoice-row-{{ invoice.id }}">
+                    <tr id="invoice-row-{{ invoice.id }}" data-status="{{ invoice.status|lower }}">
                         <td>
                             <label class="checkboxs">
                                 <input type="checkbox" name="invoice_id" value="{{ invoice.id }}" class="invoice-checkbox">
@@ -163,6 +182,7 @@
         <form id="delete-form" method="post" action="{% url 'delete-invoice' %}">
             {% csrf_token %}
             <input type="hidden" name="invoice_ids" id="invoice-ids">
+            <input type="hidden" name="confirm_delete" value="1">
             <button type="submit" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
         </form>
       </div>
@@ -177,6 +197,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     flatpickr("#id_date", { dateFormat: "Y-m-d", allowInput: true });
     flatpickr("#id_time", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, allowInput: true });
+
+    const statusFilter = document.getElementById('id_status_filter');
+    const invoiceRows = Array.from(document.querySelectorAll('tbody tr[id^="invoice-row-"]'));
+
+    function applyStatusFilter() {
+        const selected = statusFilter.value;
+        invoiceRows.forEach(row => {
+            const rowStatus = row.dataset.status || '';
+            row.style.display = !selected || rowStatus === selected ? '' : 'none';
+        });
+    }
+
+    statusFilter.addEventListener('change', applyStatusFilter);
 
     // Select All
     const selectAll = document.getElementById('select-all');

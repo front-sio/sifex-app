@@ -113,7 +113,7 @@
     </header>
     {% if invoice.get_status == 'unpaid' %}
     <div class="card-body">
-        <form action="{% url 'invoice-list' %}" method="post">
+        <form action="{% url 'invoice-mark-payment' %}" method="post">
             {% csrf_token %}
             <input type="hidden" value="{{ invoice.id }}" name="invoice_id"/>
             <div class="row">

@@ -10,6 +10,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('sifex/', include('sifex_system.urls')),
     path('accounts/', include('accounts.urls')),
+    path('', include('tcra_integration.urls')),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
@@ -18,6 +19,5 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # if settings.DEBUG:
 #     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 #     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
 
 

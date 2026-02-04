@@ -44,10 +44,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'corsheaders',
     'accounts',
     'core',
     'sifex_system',
+    'tcra_integration',
     'widget_tweaks',
     'bulma',
     'wkhtmltopdf',
@@ -111,16 +113,21 @@ DATABASES = {
 
 DATABASE_URL = env('DATABASE_URL', default=None)
 
-if not DATABASE_URL:
-    raise Exception("DATABASE_URL is not set")
-
-DATABASES = {
-    "default": dj_database_url.parse(
-        DATABASE_URL,
-        conn_max_age=600,      # helps performance
-        ssl_require=False      # internal Dokploy network; set True only if using external SSL
-    )
-}
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,      # helps performance
+            ssl_require=False      # internal Dokploy network; set True only if using external SSL
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 
@@ -192,6 +199,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
+# TCRA integration settings
+TCRA_API_KEY_HEADER = env('TCRA_API_KEY_HEADER', default='X-API-Key')
+TCRA_WEBHOOK_SECRET = env('TCRA_WEBHOOK_SECRET', default='')
+TCRA_WEBHOOK_SIGNATURE_HEADER = env('TCRA_WEBHOOK_SIGNATURE_HEADER', default='X-TCRA-Signature')
+TCRA_MAX_ATTEMPTS = env.int('TCRA_MAX_ATTEMPTS', default=4)
+TCRA_RETRY_BACKOFFS = [60, 300, 900, 3600]
+TCRA_PATHS = {
+    # TODO: Replace with official TCRA endpoints once spec is provided.
+    'SHIPMENT_CREATED': '/v1/shipments',
+    'SHIPMENT_UPDATED': '/v1/shipments',
+    'DELIVERY_CONFIRMED': '/v1/deliveries',
+    'MANIFEST': '/v1/manifests',
+    'BILLING': '/v1/billing',
+    'OTHER': '/v1/other',
+    'DEFAULT': '/v1/other',
+}
+
+# Celery settings
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=False)
+CELERY_TASK_EAGER_PROPAGATES = True
+
 # Logging configuration
 # LOGGING = {
 #     'version': 1,
@@ -214,5 +244,3 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 SECURE_SSL_REDIRECT = False
 LOGIN_URL = '/accounts/login/'
-
-

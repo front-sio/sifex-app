@@ -201,19 +201,37 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # TCRA integration settings
 TCRA_API_KEY_HEADER = env('TCRA_API_KEY_HEADER', default='X-API-Key')
+TCRA_SIGNATURE_HEADER = env('TCRA_SIGNATURE_HEADER', default='')
+# Backward compatibility with previous setting name.
+TCRA_WEBHOOK_SIGNATURE_HEADER = env('TCRA_WEBHOOK_SIGNATURE_HEADER', default=TCRA_SIGNATURE_HEADER)
 TCRA_WEBHOOK_SECRET = env('TCRA_WEBHOOK_SECRET', default='')
-TCRA_WEBHOOK_SIGNATURE_HEADER = env('TCRA_WEBHOOK_SIGNATURE_HEADER', default='X-TCRA-Signature')
 TCRA_MAX_ATTEMPTS = env.int('TCRA_MAX_ATTEMPTS', default=4)
 TCRA_RETRY_BACKOFFS = [60, 300, 900, 3600]
+TCRA_BASE_URL = env('TCRA_BASE_URL', default='')
+# Legacy symmetric key setting (deprecated by PKCS#12 signing).
+TCRA_PRIVATE_KEY = env('TCRA_PRIVATE_KEY', default='')
+TCRA_PFX_PASSWORD = env('TCRA_PFX_PASSWORD', default='')
+TCRA_PFX_PATH = env('TCRA_PFX_PATH', default='')
+TCRA_WEBHOOK_PUBLIC_CERT_B64 = env('TCRA_WEBHOOK_PUBLIC_CERT_B64', default='')
+TCRA_WEBHOOK_PUBLIC_CERT_PEM = env('TCRA_WEBHOOK_PUBLIC_CERT_PEM', default='')
+TCRA_WEBHOOK_PUBLIC_CERT_PATH = env('TCRA_WEBHOOK_PUBLIC_CERT_PATH', default='')
+TCRA_WEBHOOK_PUBLIC_KEY_B64 = env('TCRA_WEBHOOK_PUBLIC_KEY_B64', default='')
+TCRA_WEBHOOK_PUBLIC_KEY_PEM = env('TCRA_WEBHOOK_PUBLIC_KEY_PEM', default='')
+TCRA_WEBHOOK_PUBLIC_KEY_PATH = env('TCRA_WEBHOOK_PUBLIC_KEY_PATH', default='')
+TCRA_OPERATOR_CODE = env.int('TCRA_OPERATOR_CODE', default=1004)
 TCRA_PATHS = {
-    # TODO: Replace with official TCRA endpoints once spec is provided.
-    'SHIPMENT_CREATED': '/v1/shipments',
-    'SHIPMENT_UPDATED': '/v1/shipments',
-    'DELIVERY_CONFIRMED': '/v1/deliveries',
-    'MANIFEST': '/v1/manifests',
-    'BILLING': '/v1/billing',
-    'OTHER': '/v1/other',
-    'DEFAULT': '/v1/other',
+    # All existing submission types are routed to the events endpoint by default.
+    'SHIPMENT_CREATED': '/v1/api/events',
+    'SHIPMENT_UPDATED': '/v1/api/events',
+    'DELIVERY_CONFIRMED': '/v1/api/events',
+    'MANIFEST': '/v1/api/events',
+    'BILLING': '/v1/api/events',
+    'OTHER': '/v1/api/events',
+    # Explicit new endpoints from the TCRA spec.
+    'EVENTS': '/v1/api/events',
+    'SNAPSHOT': '/v1/api/snapshot',
+    'CALLBACK': '/v1/api/callback',
+    'DEFAULT': '/v1/api/events',
 }
 
 # Celery settings

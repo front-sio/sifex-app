@@ -38,6 +38,15 @@ def process_tcra_webhook_event(self, webhook_event_id: str) -> None:
     event = TcraWebhookEvent.objects.get(id=webhook_event_id)
     if event.processed:
         return
+    if not event.signature_valid:
+        event.processed = False
+        event.processing_error = "Invalid signature"
+        event.save(update_fields=["processed", "processing_error"])
+        logger.warning(
+            "Skipped TCRA webhook processing due to invalid signature",
+            extra={"event_id": webhook_event_id},
+        )
+        return
 
     try:
         # TODO: Map inbound webhook body to internal models once TCRA spec is provided.

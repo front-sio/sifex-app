@@ -1,13 +1,10 @@
-import hashlib
-import hmac
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from django.conf import settings
-from django.utils import timezone
 from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +16,7 @@ from tcra_integration.serializers import (
     TcraSubmissionRetrySerializer,
     TcraSubmissionSerializer,
 )
+from tcra_integration.services.crypto import TcraCryptoError, signature_header_name, verify_webhook_signature
 from tcra_integration.services.submissions import TcraSubmissionService
 from tcra_integration.tasks import process_tcra_webhook_event
 
@@ -32,16 +30,6 @@ def _parse_body(raw_body: bytes) -> Any:
         return json.loads(raw_body.decode("utf-8"))
     except json.JSONDecodeError:
         return raw_body.decode("utf-8", errors="replace")
-
-
-def _signature_is_valid(raw_body: bytes, provided_signature: Optional[str]) -> bool:
-    secret = getattr(settings, "TCRA_WEBHOOK_SECRET", None)
-    if not secret:
-        return False
-    if not provided_signature:
-        return False
-    digest = hmac.new(secret.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(digest, provided_signature)
 
 
 class TcraSubmissionViewSet(viewsets.GenericViewSet):
@@ -118,9 +106,12 @@ class TcraWebhookView(APIView):
     def post(self, request, *args, **kwargs):
         raw_body = request.body
         body = _parse_body(raw_body)
-        signature_header = getattr(settings, "TCRA_WEBHOOK_SIGNATURE_HEADER", "X-TCRA-Signature")
-        signature = request.headers.get(signature_header)
-        signature_valid = _signature_is_valid(raw_body, signature)
+        try:
+            signature_header = signature_header_name()
+            signature = request.headers.get(signature_header)
+            signature_valid = verify_webhook_signature(raw_body, signature)
+        except TcraCryptoError:
+            signature_valid = False
 
         event = TcraWebhookEvent.objects.create(
             headers=dict(request.headers),
@@ -131,6 +122,13 @@ class TcraWebhookView(APIView):
             "TCRA webhook received",
             extra={"event_id": str(event.id), "signature_valid": signature_valid},
         )
+
+        if not signature_valid:
+            logger.warning(
+                "TCRA webhook rejected due to invalid signature",
+                extra={"event_id": str(event.id)},
+            )
+            return Response({"detail": "Invalid signature"}, status=status.HTTP_401_UNAUTHORIZED)
 
         process_tcra_webhook_event.delay(str(event.id))
         return Response({"received": True}, status=status.HTTP_200_OK)

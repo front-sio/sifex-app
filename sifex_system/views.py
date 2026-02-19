@@ -1414,9 +1414,12 @@ def mark_invoice_payment(request):
 
     awb = invoice.awb
     if awb:
+        # Move AWB out of billing and into delivery queue once invoice is settled.
         awb.bill = False
         awb.invoice_generated = True
         awb.billed = True
+        awb.delivered = False  # explicitly keep it pending delivery
+        awb.deleted = False    # guard against any accidental soft-delete states
         awb.save()
 
         master_status = 'invoice paid' if status == 'paid' else 'invoice credited'

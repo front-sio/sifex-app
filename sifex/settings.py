@@ -111,24 +111,18 @@ DATABASES = {
 #url = urlparse(DATABASE_URL)
 
 
-DATABASE_URL = env('DATABASE_URL', default=None)
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,      # helps performance
-            ssl_require=False      # internal Dokploy network; set True only if using external SSL
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set in environment variables")
 
+DATABASES = {
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=False  # set True only if using external managed DB with SSL
+    )
+}
 
 
 # DATABASES = {

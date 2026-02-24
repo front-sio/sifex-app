@@ -10,6 +10,7 @@ for i in $(seq 1 "$max_retries"); do
   if python - <<'PY'
 import os
 import sys
+import traceback
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sifex.settings")
 
@@ -18,7 +19,9 @@ try:
     django.setup()
     from django.db import connections
     connections["default"].cursor()
-except Exception:
+except Exception as exc:
+    print(f"Database check failed: {exc.__class__.__name__}: {exc}", file=sys.stderr)
+    traceback.print_exc(limit=1)
     sys.exit(1)
 PY
   then
